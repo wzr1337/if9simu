@@ -1,0 +1,194 @@
+#!/usr/bin/env bash
+# Reasoning behind strict bashing http://redsymbol.net/articles/unofficial-bash-strict-mode/
+
+# Start script timer
+start=$(date +%s)
+
+set -euo pipefail
+readonly IFS=$'\n\t'
+
+# Load colours and common functions
+chmod +x "$PWD/ci/support/functions.sh"
+# shellcheck source=/dev/null
+source "$PWD/ci/support/functions.sh"
+
+# Feature routing table
+refactor_search=0
+
+while getopts ":rh" opt; do
+    case $opt in
+        r)
+            refactor_search=1
+            ;;
+		h)
+			usage && exit 0
+			;;
+        \?)
+            echo "Invalid option"
+			usage && exit 1
+			break;
+    esac
+ done
+
+if [ $refactor_search == 1 ]
+then
+	echo "This is an example of a feature flag"
+fi
+
+# Test directory
+readonly CI_DIR=$PWD/ci/stages
+
+# Testing tools
+readonly PYTHON_LINT="flake8"
+readonly SHELL_LINT="shellcheck"
+
+# Directorys to exclude from linting
+readonly EXC_DIR=(".git" "Dockerfile" "servicebase-master" "ci" "node_modules")
+
+# Files to exclude from linting
+readonly FILE_BLACKLIST="{mvnw,*.md}"
+
+if [ "$(command -v python)" ]
+then
+    print_pass "Python detected, now checking version..."
+    version=$(python --version 2>&1 | cut -d " " -f 2 | cut -d "." -f 1)
+    if [ "$version" -gt "2" ]
+    then
+        print_pass "Python 3 installed"
+        if [ "$(command -v robot)" ]
+        then
+            print_pass "Robot framework installed"
+        else
+            print_warning "Robot framework not installed, please install"
+        fi
+    else
+        print_warning "Old version of Python installed, upgrade to Python 3."
+    fi
+else
+	print_warning "Python not installed, please install Python"
+fi
+
+# Check for tests directory
+if [ -d "$CI_DIR" ] 
+then
+	print_pass "Test directory located" 
+else
+    print_error "Test directory cannot be located, commit rejected."
+fi
+
+# Check for gitlab-ci.yml file
+if [ -f "$PWD/.gitlab-ci.yml" ]
+then
+	print_pass ".gitlab-ci.yml file found"
+else
+    print_error ".gitlab-ci.yml file not found"
+fi
+
+# Lint gateway values
+java_lint=0
+ts_lint=1
+
+# Check testing tools are installed
+print_info "Checking testing tools are installed"
+if [ "$(command -v ${PYTHON_LINT})" ]
+then 
+	print_pass "${PYTHON_LINT} installed"
+else
+	print_error "${PYTHON_LINT} not installed"
+fi
+
+if [ "$(command -v ${SHELL_LINT})" ]
+then 
+	print_pass "${SHELL_LINT} installed"
+else
+	print_error "${SHELL_LINT} not installed"
+fi
+
+# Check whether project is a java project
+if [ -f "$PWD/pom.xml" ]
+then
+	print_info "This is a java project..."
+	print_info "Installing maven dependencies..."
+	mvn clean install -U
+	print_pass "Maven dependencies installed"
+	print_info "Checking for jlr checkstyle file..."
+	if [ -f "$PWD/jlr-checkstyle.xml" ]
+	then
+		print_pass "JLR Checkstyle file found"
+		java_lint=1
+	else
+		print_error "JLR Checkstyle file not found"
+	fi
+fi
+
+# Check whether project is a Javascript project
+if [ -f "$PWD/package.json"  ]
+then
+	print_info "This is a Javascript project..."
+	print_info "Installing node modules..."
+	npm i
+fi
+
+# Lint checks
+
+print_info "Starting linting tests..."
+function getList(){
+	find "$PWD" -type f \( -name "*.sh" -or ! -name "*.*" \) -type f ! -name "*Dockerfile*"
+}
+
+function filterList(){
+	exc_dir_len="${#EXC_DIR[@]}"
+	for file in $1
+	do
+		value=$exc_dir_len
+		for dir in "${EXC_DIR[@]}"
+		do
+			if [[ "$file" == *"$dir"* ]]
+			then
+				break
+			fi
+			value=$(("$value"-1))
+		done
+		if [ "$value" == 0 ]
+		then
+			shellcheck "$file"
+		fi
+	done
+}
+
+# Shellscript lint checks
+list=$(getList)
+filterList "$list"
+
+print_pass "Shellscript linting passed..."
+
+
+# Python lint checks
+print_info "Performing flake8 python linting..."
+print_info "If any tests fail the build phase will fail..."
+flake8 "$PWD" --exclude .git,node_modules,
+print_pass "Python linting passed"
+
+# Java lint checks
+if [ $java_lint == 1 ]
+then
+	print_info "Performing checkstyle java linting..."
+	print_info "If any tests fail the build phase will fail..."
+	mvn validate
+	print_pass "Java linting tests passed"
+fi
+
+# Typescript lint checks
+if [ $ts_lint == 1  ]
+then
+	print_info "Performing Typescript linting..."
+	print_info "If any tests fail the build phase will fail..."
+	npm run lint
+	print_pass "Javascript linting passed"
+fi
+
+# End script timer
+end=$(date +%s)
+runtime=$((end-start))
+print_info "Tests took ${runtime} seconds to run"
+sleep 4

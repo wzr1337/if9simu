@@ -1,0 +1,392 @@
+[
+  {
+    "timestamp": "2019-02-20T12:53:39+0000",
+    "odometer": 6069000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.18924778,
+      "longitude": -1.47891306,
+      "speed": 0,
+      "heading": 76
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:53:49+0000",
+    "odometer": 6069000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.18924222,
+      "longitude": -1.47891861,
+      "speed": 0.04492332929532855,
+      "heading": 172
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:53:54+0000",
+    "odometer": 6069000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.18907972,
+      "longitude": -1.4788625,
+      "speed": 2.2951714778759262,
+      "heading": 172
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:53:59+0000",
+    "odometer": 6069000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.18902111,
+      "longitude": -1.47878944,
+      "speed": 1.019233639209207,
+      "heading": 114
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:54:01+0000",
+    "odometer": 6069000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.18904111,
+      "longitude": -1.47841417,
+      "speed": 7.977462852761558,
+      "heading": 83
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:54:10+0000",
+    "odometer": 6069000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.18914833,
+      "longitude": -1.47662944,
+      "speed": 8.439594371342462,
+      "heading": 84
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:54:16+0000",
+    "odometer": 6069000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.18934583,
+      "longitude": -1.47544028,
+      "speed": 8.697276323598976,
+      "heading": 51
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:54:19+0000",
+    "odometer": 6069000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.18964889,
+      "longitude": -1.47523917,
+      "speed": 7.534936093579245,
+      "heading": 8
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:54:24+0000",
+    "odometer": 6069000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19032639,
+      "longitude": -1.47545139,
+      "speed": 9.532743762691323,
+      "heading": 337
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:54:25+0000",
+    "odometer": 6069000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19032639,
+      "longitude": -1.47545139,
+      "speed": 0,
+      "heading": 337
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:54:27+0000",
+    "odometer": 6069000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19055833,
+      "longitude": -1.47583111,
+      "speed": 11.35182214400866,
+      "heading": 304
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:54:33+0000",
+    "odometer": 6069000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19085139,
+      "longitude": -1.47648861,
+      "speed": 5.73845927205177,
+      "heading": 357
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:54:35+0000",
+    "odometer": 6069000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19098917,
+      "longitude": -1.4762925,
+      "speed": 6.3167299747701895,
+      "heading": 49
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:54:40+0000",
+    "odometer": 6069000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19132861,
+      "longitude": -1.47560444,
+      "speed": 7.481347197654135,
+      "heading": 50
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:54:44+0000",
+    "odometer": 6069000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19160806,
+      "longitude": -1.47518444,
+      "speed": 6.563173347934534,
+      "heading": 19
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:54:46+0000",
+    "odometer": 6069000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19176972,
+      "longitude": -1.47528167,
+      "speed": 5.95201230833175,
+      "heading": 334
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:54:55+0000",
+    "odometer": 6070000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19298583,
+      "longitude": -1.47648972,
+      "speed": 10.930388507906123,
+      "heading": 329
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:55:04+0000",
+    "odometer": 6070000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19424944,
+      "longitude": -1.47804111,
+      "speed": 12.140548785058481,
+      "heading": 296
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:55:08+0000",
+    "odometer": 6070000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19441389,
+      "longitude": -1.47845028,
+      "speed": 5.180370306807065,
+      "heading": 333
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:55:10+0000",
+    "odometer": 6070000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19452389,
+      "longitude": -1.47850222,
+      "speed": 3.95588377884655,
+      "heading": 343
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:55:25+0000",
+    "odometer": 6070000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19694333,
+      "longitude": -1.48130806,
+      "speed": 13.672677459025559,
+      "heading": 315
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:55:29+0000",
+    "odometer": 6070000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19725167,
+      "longitude": -1.48216167,
+      "speed": 10.48983082801267,
+      "heading": 276
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:55:32+0000",
+    "odometer": 6070000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19713583,
+      "longitude": -1.48258722,
+      "speed": 6.572893003135175,
+      "heading": 236
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:55:37+0000",
+    "odometer": 6070000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19655583,
+      "longitude": -1.48317583,
+      "speed": 9.438501011204536,
+      "heading": 204
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:55:40+0000",
+    "odometer": 6070000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19625139,
+      "longitude": -1.4833825,
+      "speed": 7.594017700581616,
+      "heading": 202
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:55:55+0000",
+    "odometer": 6071000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19425389,
+      "longitude": -1.48470139,
+      "speed": 9.925461563616134,
+      "heading": 208
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:55:57+0000",
+    "odometer": 6071000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19412028,
+      "longitude": -1.48493167,
+      "speed": 6.714316164735742,
+      "heading": 243
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:55:59+0000",
+    "odometer": 6071000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19412361,
+      "longitude": -1.48508889,
+      "speed": 3.3313421598868964,
+      "heading": 279
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:56:10+0000",
+    "odometer": 6071000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19423806,
+      "longitude": -1.48542472,
+      "speed": 1.47937254395354,
+      "heading": 301
+    }
+  },
+  {
+    "timestamp": "2019-02-20T12:56:25+0000",
+    "odometer": 6071000,
+    "fuelConsumption": null,
+    "electricalConsumption": null,
+    "electricalRegeneration": null,
+    "position": {
+      "latitude": 52.19449667,
+      "longitude": -1.48595167,
+      "speed": 1.905878649135998,
+      "heading": 350
+    }
+  }
+]

@@ -1,0 +1,241 @@
+#!/usr/bin/env bash
+# Reasoning behind strict bashing http://redsymbol.net/articles/unofficial-bash-strict-mode/
+
+
+# Start script timer
+start=$(date +%s)
+
+set -euo pipefail
+readonly IFS=$'\n\t'
+
+# Feature flag -e to enable disabled features
+
+function usage(){
+	echo "usage: pre-commit [option] ... [-h]"
+	echo "Options and arguments:"
+	echo "-h : print this help message and exit"
+}
+
+flag=0
+while getopts ":e:h" opt; do
+    case $opt in
+        e)
+            flag=1
+            ;;
+		h)
+			usage && exit 0
+			;;
+        \?)
+            break;
+    esac
+ done
+
+
+# Link to confluence page
+readonly CONF_PAGE="https://confluence.devops.jlr-apps.com/display/MAD/Pre-Commit+Hook"
+
+# File size limits
+readonly MAXSIZE=2000000 # 2mb
+readonly MAXSIZE_mb=$((MAXSIZE / 1000000))
+
+# Test directory
+readonly CI_DIR=$PWD/ci/stages
+
+# Testing tools
+readonly PYTHON_LINT="flake8"
+readonly SHELL_LINT="shellcheck"
+
+readonly FUNCTIONS="$PWD/ci/support/functions.sh"
+
+# Load colours and common functions
+chmod +x "$FUNCTIONS"
+# shellcheck source=/dev/null
+source "$FUNCTIONS"
+
+
+
+print_info "For more information please refer to ${CONF_PAGE}"
+
+if [[ "$(uname -s)" = *"darwin"* ]]
+then
+	if [ "$(command -v python3)" ]
+	then
+		print_pass "Python detected, now checking version..."
+		version=$(python3 --version 2>&1 | cut -d " " -f 2 | cut -d "." -f 1)
+		if [ "$version" -gt "2" ]
+		then
+			print_pass "Python 3 installed"
+			if [ "$(command -v robot)" ]
+			then
+				print_pass "Robot framework installed"
+			else
+				print_warning "Robot framework not installed, please install"
+			fi
+		else
+			print_warning "Old version of Python installed, upgrade to Python 3."
+		fi
+	else
+		print_warning "Python not installed, please install Python"
+	fi
+else
+	if [ "$(command -v python)" ]
+	then
+		print_pass "Python detected, now checking version..."
+		version=$(python --version 2>&1 | cut -d " " -f 2 | cut -d "." -f 1)
+		if [ "$version" -gt "2" ]
+		then
+			print_pass "Python 3 installed"
+			if [ "$(command -v robot)" ]
+			then
+				print_pass "Robot framework installed"
+			else
+				print_warning "Robot framework not installed, please install"
+			fi
+		else
+			print_warning "Old version of Python installed, upgrade to Python 3."
+		fi
+	else
+		print_warning "Python not installed, please install Python"
+	fi
+fi
+
+# Check for tests directory
+if [ -d "$CI_DIR" ] 
+then
+	print_pass "Test directory located" 
+else
+    print_error "Test directory cannot be located, commit rejected."
+fi
+
+# Check for gitlab-ci.yml file
+if [ -f "$PWD/.gitlab-ci.yml" ]
+then
+	print_pass "gitlab-ci.yml file found"
+else
+    print_error "gitlab-ci.yml file not found"
+fi
+
+# Check file sizes and unstage any files too big
+print_info "Maxiumum file size is ${MAXSIZE_mb}mb"
+for file in $(git diff --cached --name-only --diff-filter=AM); do
+	# Check file size
+	size_bytes=$(wc -c <"$file")
+	size_mb=$((size_bytes / 1000000))
+	print_info "${file}: file size is ${size_mb}mb"
+	if [ "$size_bytes" -gt "$MAXSIZE" ]
+	then 
+		print_warning "${file}: File size is too big, unstaging file"
+		git reset HEAD "$file"
+		print_info "Track this file with LFS"
+		print_info "https://www.atlassian.com/git/tutorials/git-lfs"
+		continue 
+	fi
+done
+
+# Check testing tools are installed
+print_info "Checking testing tools are installed"
+if [ $flag == 1 ]
+then
+	if [ "$(command -v ${PYTHON_LINT})" ]
+	then 
+		print_pass "${PYTHON_LINT} installed"
+	else
+		print_error "${PYTHON_LINT} not installed"
+	fi
+fi
+
+if [ $flag == 1 ]
+then
+	if [ "$(command -v ${SHELL_LINT})" ]
+	then 
+		print_pass "${SHELL_LINT} installed"
+	else
+		print_error "${SHELL_LINT} not installed"
+	fi
+fi
+# Check whether project is a java project
+
+if [ -f "$PWD/pom.xml" ]
+then
+	print_info "This is a java project..."
+	print_info "Checking for jlr checkstyle file..."
+	if [ -f "$PWD/jlr-checkstyle.xml" ]
+	then
+		print_pass "JLR Checkstyle file found"
+	else
+		print_error "JLR Checkstyle file not found"
+	fi
+fi
+
+# Lint counters
+
+java_lint=0
+ts_lint=0
+
+for file in $(git diff --cached --name-only --diff-filter=AM); do
+	if [[ $file =~ \.py$ ]]
+    then 
+		print_pass "${file}: Python file detected, running ${PYTHON_LINT}..."
+        print_info "If any tests fail the commit will be rejected"
+       # "${PYTHON_LINT}" "$file"
+        print_pass "${file}: Passed ${PYTHON_LINT}"
+    elif [[ $file =~ \.java$ ]]
+    then 
+		if [ $java_lint == 0 ]
+		then
+			print_pass "${file}: Java file detected, running java test suite..."
+			print_info "If any tests fail the commit will be rejected"
+			mvn test
+			print_pass "All java files passed linting and unit tests"
+			java_lint+=1
+		else
+			continue
+		fi
+    elif [[ $file =~ \.ts$ ]]
+    then 
+		print_pass "${file}: Typescript detected"
+		# print_pass "Checking for .only..."
+		# if grep -q '.only' "${file}"
+		# then
+    #                     print_error "${file}: contains .only"
+    #             fi
+		print_pass "Running tslint..."
+		print_info "If any tests fail the commit will be rejected"
+		"./node_modules/eslint/bin/tslint" "$file" 
+		print_pass "${file}: Passed linting"
+		if [ $ts_lint == 0 ]
+		then
+			print_info "Running Typescript unit tests..."
+			npm run test:only
+			print_pass "Passed Typescript unit tests"
+			ts_lint=1
+		fi
+    elif [[ $file =~ \.sh$ && $flag == 1 ]]
+    then 
+		print_pass "${file}: Shellscript detected, running ${SHELL_LINT}..."
+        print_info "If any tests fail the commit will be rejected"
+        "${SHELL_LINT}" "$file"
+        print_pass "${file}: Passed ${SHELL_LINT}"
+    else
+        print_warning "${file}: Unknown file extension"
+    fi
+done
+
+# If robot scripts have been modified run a dry run to check for syntax errors
+if [[ $(git diff --cached --name-only --diff-filter=AM) = *ci/stages/acceptance/robot/* ]]
+then 
+	print_info "Robot scripts changed, performing dry run..."
+	if [ "$(robot --dryrun "${CI_DIR}"/acceptance/robot/)" ]
+	then
+        	print_pass "Robot dry run passed"
+	else
+        	print_error "Robot dry run failed, see log.html"
+	fi
+else
+	print_info "Robot scripts unchanged, dry run skipped"
+fi
+
+# End script timer
+end=$(date +%s)
+runtime=$((end-start))
+print_info "Tests took ${runtime} seconds to run"

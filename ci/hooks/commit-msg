@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+readonly IFS=$'\n\t'
+
+readonly FUNCTIONS="$PWD/ci/support/functions.sh"
+
+# Load colours and common functions
+chmod +x "$FUNCTIONS"
+# shellcheck source=/dev/null
+source "$FUNCTIONS"
+
+# Hook to make sure that no commit message is less than 25 characters and each line greater than 78 characters
+line_index=1
+jira=0
+
+while read -r line; do
+	[[ $line = \#* ]] && continue
+	if [ $line_index == 1 ] && [ ${#line} -le 25 ]
+	then
+		print_error "Commit message subject length too short" 
+	elif [[ $line =~ ([A-Z]{2,4}-[0-9]) ]] && [ $line_index == 1 ]
+	then
+		jira=$((jira + 1))
+		line_index=$((line_index + 1))
+	else
+		line_index=$((line_index + 1))
+	fi
+done < "${1}"
+
+if [ $jira == 0 ]
+then
+	print_info "TODO: detect JIRA ticket anywhere not just start of line"
+else
+	print_pass "Commit message has Jira issue linked."
+fi
+
+print_pass "Commit checks complete."

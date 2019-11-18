@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Reasoning behind strict bashing http://redsymbol.net/articles/unofficial-bash-strict-mode/
+
+
+# Start script timer
+start=$(date +%s)
+
+set -euo pipefail
+readonly IFS=$'\n\t'
+
+# Load colours and common functions
+chmod +x "$PWD/ci/support/functions.sh"
+# shellcheck source=/dev/null
+source "$PWD/ci/support/functions.sh"
+
+# Test directory
+readonly CI_DIR=$PWD/ci/stages
+
+# Check whether project is a java project and run unit tests
+
+if [ -f "$PWD/pom.xml" ]
+then
+	print_info "This is a java project..."
+	if [ "$(java -version)" ]
+	then
+		print_info "Java installed"
+		if [ "$(mvn -version)" ]
+		then
+			print_info "Maven installed"
+			print_info "Installing dependencies..."
+			mvn clean install -U
+			print_info "Running linting and unit tests"
+			print_info "If any tests fail the build will fail..."
+			mvn site
+			print_pass "Java tests passed"
+		else
+			print_error "Maven not installed"
+		fi
+	else
+		print_error "Java not installed"
+	fi
+fi
+
+# Check whether project is a Javascript/Typescript project and run unit tests
+# npm run test
+
+if [ -f "$PWD/package.json"  ]
+then
+	print_info "This is a Javascript/Typescript project..."
+	if [ "$(npm --version)" ]
+	then
+		print_info "Npm installed"
+		print_info "Installing node modules..."
+		npm i
+		print_info "Node modules successfully installed."
+		print_info "Running unit tests..."
+		print_info "If any tests fail the build will fail..."
+		npm run test:only
+		print_pass "Javascript/Typescript tests passed"
+	else
+		print_error "Npm not installed"
+	fi
+fi
+
+# End script timer
+end=$(date +%s)
+runtime=$((end-start))
+print_info "Tests took ${runtime} seconds to run"

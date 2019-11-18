@@ -1,0 +1,4 @@
+before going public
+
++ Rename wcif9 to node-icr
++ Hard-code urls to not disclose pre-prod urls

@@ -1,0 +1,41 @@
+{
+  "name": "wcif9",
+  "version": "0.1.5",
+  "description": "An API wrapper for WirelessCar IF9",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "rimraf ./dist/ && npm run build:prod && npm run test:only",
+    "test:only": "jest --coverage --verbose=false",
+    "test:prod": "npm run build:prod && npm run test:only",
+    "build": "npm run build:dev",
+    "build:dev": "tsc",
+    "build:prod": "npm run lint && tsc",
+    "lint": "tslint --project ./tsconfig.json",
+    "lint:fix": "tslint --fix --project ./tsconfig.json",
+    "version": "build:prod && conventional-changelog -p angular -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md"
+  },
+  "keywords": [
+    "RSI",
+    "cli"
+  ],
+  "private": true,
+  "author": "Dr. Patrick Bartsch",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@types/ws": "^6.0.1",
+    "axios": "^0.18.0",
+    "rxjs": "^6.3.3",
+    "stompjs": "^2.3.3",
+    "ws": "^6.1.2"
+  },
+  "devDependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/jest": "^23.3.9",
+    "@types/node": "^9.4.0",
+    "conventional-changelog-cli": "^2.0.1",
+    "jest": "^23.6.0",
+    "tslint": "^5.12.1",
+    "tslint-sonarts": "^1.9.0",
+    "typescript": "^2.9.2"
+  }
+}

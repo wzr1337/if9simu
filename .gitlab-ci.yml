@@ -1,0 +1,63 @@
+variables:
+  DOCKER_IMAGE: dannyburke1/pivi-ci
+  SONAR_SCANNER: ciricihq/gitlab-sonar-scanner
+
+image: '${DOCKER_IMAGE}'
+
+stages:
+  - validate
+  - unit-test
+  - analysis
+
+lint:
+  stage: validate
+  image: '${DOCKER_IMAGE}'
+  allow_failure: true
+  script:
+    - chmod +x ./ci/stages/validate/lint
+    - ./ci/stages/validate/lint
+
+build:
+  stage: validate
+  image: '${DOCKER_IMAGE}'
+  script:
+    - npm i
+    # CI=false turns off warnings, i.e. allows linting to fail
+    - CI=false npm run build
+  artifacts:
+    paths:
+      - dist/
+  when: always
+  allow_failure: false
+
+unit-tests:
+  stage: unit-test
+  image: '${DOCKER_IMAGE}'
+  allow_failure: false
+  script:
+    - chmod +x ./ci/stages/validate/unit_tests
+    - ./ci/stages/validate/unit_tests
+  artifacts:
+    paths:
+      - dist/coverage/lcov.info
+    when: always
+  coverage: '/^All files\s+\|\s+(\d+\.*\d*)\s+\|/'
+
+
+sonarqube-analysis:
+  stage: analysis 
+  image: '${SONAR_SCANNER}'
+  variables:
+    SONAR_URL: '${SONAR_URL}'
+    SONAR_TOKEN: '${SONAR_TOKEN}'
+    SONAR_PROJECT_KEY: '${CI_PROJECT_NAME}'
+    SONAR_GITLAB_PROJECT_ID: '${CI_PROJECT_ID}'
+    CI_BUILD_REF: '${CI_COMMIT_SHA}'
+    CI_BUILD_REF_NAME: '${CI_COMMIT_REF_NAME}'
+    SONAR_ANALYSIS_MODE: publish
+  script:
+    - pwd
+    - ls src/**/*spec*
+    - apk add --update nodejs nodejs-npm
+    - npm i
+    - gitlab-sonar-scanner -X
