@@ -1,0 +1,50 @@
+{
+  "name": "IF9Sim",
+  "version": "0.0.1",
+  "description": "Just a small Sim",
+  "main": "dist/index.js",
+  "nodemonConfig": {
+    "verbose": true,
+    "watch": [
+      "src/"
+    ],
+    "ignore": [
+      "dist/*"
+    ],
+    "ext": "ts",
+    "exec": "npm start"
+  },
+  "scripts": {
+    "test": "rimraf ./dist/ && npm run build:prod && npm run test:only",
+    "test:only": "jest --coverage --verbose=false",
+    "test:prod": "npm run build:prod && npm run test:only",
+    "build": "tsc",
+    "build:prod": "npm run lint && tsc",
+    "lint": "tslint --project ./tsconfig.json",
+    "lint:fix": "tslint --fix --project ./tsconfig.json",
+    "start": "npm run build && node dist/index.js",
+    "version": "build:prod && conventional-changelog -p angular -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
+    "watch": "nodemon"
+  },
+  "keywords": [],
+  "private": true,
+  "author": "Dr. Patrick Bartsch",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "uuid": "^3.3.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.2",
+    "@types/jest": "^23.3.9",
+    "@types/node": "^9.4.0",
+    "conventional-changelog-cli": "^2.0.1",
+    "jest": "^23.6.0",
+    "nodemon": "^1.19.4",
+    "rimraf": "^2.6.3",
+    "tslint": "^5.12.1",
+    "typescript": "^2.9.2"
+  }
+}
