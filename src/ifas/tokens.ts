@@ -4,15 +4,8 @@ import {v4} from "uuid";
 
 const SECRET = "shhhhh....";
 
-const userDB = {
-  "ansgerl@gmail.com": {
-    password: "AnsgarJaguar2019",
-    // tslint:disable-next-line: object-literal-sort-keys
-    access_token: "",
-    authorization_token: "",
-    refresh_token: "",
-  },
-};
+import userDB from "../config/users.json";
+import { Logger } from "../utils/logger.js";
 
 const refresh_tokens = {
 

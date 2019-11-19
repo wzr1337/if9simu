@@ -1,9 +1,10 @@
 import * as bodyParser from "body-parser";
 import express from "express";
 import { AddressInfo } from "net";
+import { if9Router} from "./if9/router";
 import { ifasRouter} from "./ifas/router";
 import { ifOpRouter} from "./ifop/router";
-import { if9Router} from "./if9/router";
+import { dispatch2Vehicle } from "./if9/serviceDispatcher";
 
 
 // the app
@@ -24,5 +25,6 @@ const server = app.listen(3333, () => {
   const host = ((server.address() as AddressInfo).address !== "::") ? (server.address() as AddressInfo).port : "127.0.0.1"  ;
 
   console.log("Example app listening at http://%s:%s", host, port);
+  dispatch2Vehicle("RDL", "123456789");
 
 });
