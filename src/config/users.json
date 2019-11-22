@@ -1,8 +1,17 @@
 {
   "ansgerl@gmail.com": {
-  "password": "AnsgarJaguar2019",
-  "access_token": "",
-  "authorization_token": "",
-  "refresh_token": ""
+    "password": "AnsgarJaguar2019",
+    "pin": "1234",
+    "userId": "DEAD000BEAF",
+    "vehicles": [
+      {
+        "vin": "SADFA2AN2J1Z23299",
+        "role": "Primary"
+      },
+      {
+        "vin": "SALWA2AK8KA868854",
+        "role": "Secondary"
+      }
+    ]
   }
 }

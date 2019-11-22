@@ -1,15 +1,25 @@
-import {NextFunction, Request, Response} from "express";
+import { Request, Response } from "express";
 import * as jwt from "jsonwebtoken";
 import {v4} from "uuid";
 
-const SECRET = "shhhhh....";
-
+// json imports
 import userDB from "../config/users.json";
 import { Logger } from "../utils/logger.js";
 
-const refresh_tokens = {
+// globals
+const SECRET = "shhhhh....";
+const refreshTokens = {};
+const userIdIndex: {[userId: string]: string} = {};
+const VINIndex: {[VIN: string]: string} = {};
 
-};
+for (const userName in userDB) {
+  if (userDB.hasOwnProperty(userName)) {
+    userIdIndex[userDB[userName].userId] = userName;
+    for (const vehicle of userDB[userName].vehicles) {
+      VINIndex[vehicle.vin] = userName;
+    }
+  }
+}
 
 export function tokens(req: Request, res: Response) {
   const contype = req.headers["content-type"];
@@ -47,7 +57,7 @@ export function tokens(req: Request, res: Response) {
         refresh_token: user.refresh_token || v4(),
       });
 
-      refresh_tokens[userDB[req.body.username].refresh_token] = req.body.username;
+      refreshTokens[userDB[req.body.username].refresh_token] = req.body.username;
 
       res.status(200).json({
         access_token: user.access_token,
@@ -60,11 +70,11 @@ export function tokens(req: Request, res: Response) {
       break;
     case "refresh_token":
       // so we passed all checks.. let go and login..
-      if (!refresh_tokens[req.body.refresh_token]) {
+      if (!refreshTokens[req.body.refresh_token]) {
         return res.sendStatus(403);
       }
-      user = userDB[refresh_tokens[req.body.refresh_token]];
-      userDB[req.body.username] = Object.assign(refresh_tokens[req.body.refresh_token], {
+      user = userDB[refreshTokens[req.body.refresh_token]];
+      userDB[req.body.username] = Object.assign(refreshTokens[req.body.refresh_token], {
         access_token: v4(),
         // tslint:disable-next-line: max-line-length
         authorization_token: jwt.sign({ who: "reads this went far", username: user.username}, SECRET),
@@ -81,12 +91,28 @@ export function tokens(req: Request, res: Response) {
   }
 }
 
-// tslint:disable-next-line: variable-name
-export function validateAccessToken(username: string, access_token: string) {
-  return userDB[username].access_token === access_token;
+export function validateAccessToken(username: string, accessToken: string) {
+  return userDB[username].access_token === accessToken;
 }
 
-// tslint:disable-next-line: variable-name
-export function validateAuthToken(username: string, authorization_token: string) {
-  return userDB[username].authorization_token === authorization_token;
+export function validateAuthToken(username: string, authorizationToken: string) {
+  return userDB[username].authorization_token === authorizationToken;
+}
+
+export function checkPIN(userId: string, pin: string) {
+  if (!userId) { throw new Error("need a userId")}
+  if (!userIdIndex[userId]) { Logger.error(`UserId ${userId} unknown`);}
+  return userIdIndex[userId] && userDB[userIdIndex[userId]].pin === pin;
+}
+
+export function getUserNameById(userId: string) {
+  return userIdIndex[userId];
+}
+
+export function getUserNameByVIN(VIN: string) {
+  return VINIndex[VIN];
+}
+
+export function getUserIdByVIN(VIN: string) {
+  return userDB[VINIndex[VIN]].userId;
 }

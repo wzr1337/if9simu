@@ -1,5 +1,5 @@
 import * as express from "express";
-import { tokens } from "./tokens";
+import { tokens } from "./auth";
 
 export const ifasRouter = express.Router();
 
