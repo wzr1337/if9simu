@@ -2,7 +2,7 @@ import * as express from "express";
 import { authenticate, validateServiceRequest } from "./authenticate";
 import { hblf, lock, unlock } from "./rdl";
 import { getServiceStatus } from "./serviceDispatcher";
-import { getVehicles, getVehicleStatus } from "./vehicles";
+import { getVehicles, getVehicleStatus, validateVehicleRequest } from "./vehicles";
 
 export const if9Router = express.Router();
 
@@ -10,6 +10,7 @@ if9Router.get("/", (req, res, next) => {
   res.send("ifop"); // our response here
 });
 
+if9Router.get("/jlr/users/:userid/vehicles/", validateVehicleRequest);
 if9Router.get("/jlr/users/:userid/vehicles/", getVehicles);
 
 if9Router.post("/jlr/vehicles/:VIN/users/:userid/authenticate", authenticate);

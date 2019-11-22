@@ -1,15 +1,71 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
+import { getVehiclesByUserId, getUserNameByVIN } from "../ifas/auth";
+import * as ifop from "../ifop/clients";
+import { Logger } from "../utils/logger";
 
 export function getVehicles(req: Request, res: Response) {
-  const resp = [{
-      role: "Primary",
-      userId: "166EA507BA6",
-      vin: "SADFA2AN2J1Z23299",
-    },
-  ];
+/*
+Content-Type:application/json
+X-Device-Id:{{deviceId}}
+Authorization:Bearer {{icr_access_token}}
+X-Requestor:jlr
+*/
+
+  const userId = req.params.userid;
+  const resp = getVehiclesByUserId(userId).map((vehicle) => {
+    return {...vehicle, userId};
+  });
   res.status(200).json({
     vehicles: resp,
   });
+}
+
+export function validateVehicleRequest(req: Request, res: Response, next?: NextFunction) {
+  const contype = req.headers["content-type"];
+  if (!contype || contype !== "application/json") {
+    Logger.error(`invalid "content-type" header`);
+    return res.sendStatus(400);
+  }
+
+  if (!req.headers["x-requestor"] || req.headers["x-requestor"] !== "jlr") {
+    Logger.error(`invalid "x-requester" header`);
+    return res.sendStatus(401);
+  }
+
+  const deviceId = req.headers["x-device-id"] as string;
+  if (!deviceId || !ifop.isDeviceRegistered(deviceId, undefined, req.params.userid)) {
+    Logger.error(`invalid "x-device-id" header: ${deviceId}`);
+    return res.status(401).json({
+      errorDescription: "The credentials supplied are invalid",
+      errorLabel: "InvalidCredentials",
+    });
+  }
+
+  if (!req.headers.authorization || req.headers.authorization.indexOf("Bearer") !== 0) {
+    Logger.error(`missing or invalid "authorization" header`);
+    return res.status(401).json({
+      errorDescription: "The credentials supplied are invalid",
+      errorLabel: "InvalidCredentials",
+    });
+  }
+  const at = req.headers.authorization.split("Bearer ")[1];
+  if (!at /* check for token validity*/) {
+    Logger.error(`invalid access_token`);
+    return res.status(401).json({
+      errorDescription: "The credentials supplied are invalid",
+      errorLabel: "InvalidCredentials",
+    });
+  }
+
+  if (!true /*VIN does not belong to user*/) {
+    Logger.error(`invalid user/VIN pair`);
+    return res.status(401).json({
+      errorDescription: "The credentials supplied are invalid",
+      errorLabel: "InvalidCredentials",
+    });
+  }
+
+  next();
 }
 
 export function getVehicleStatus(req: Request, res: Response) {

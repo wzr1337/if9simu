@@ -116,3 +116,7 @@ export function getUserNameByVIN(VIN: string) {
 export function getUserIdByVIN(VIN: string) {
   return userDB[VINIndex[VIN]].userId;
 }
+
+export function getVehiclesByUserId(userId: string) {
+  return userDB[userIdIndex[userId]].vehicles;
+}

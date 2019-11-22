@@ -1,6 +1,5 @@
 import {NextFunction, Request, Response} from "express";
 import { getUserIdByVIN } from "../ifas/auth";
-import * as ifop from "../ifop/clients";
 import { Logger } from "../utils/logger";
 import { checkServiceToken, invalidateServiceToken } from "./authenticate";
 import { dispatch2Vehicle } from "./serviceDispatcher";
