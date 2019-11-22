@@ -35,6 +35,7 @@ function setState(vehicleId, stateDiff, serviceType) {
     serviceRequests[getKey(customerServiceId, vehicleId)] = {
       status: "Successful",
       statusTimestamp: (new Date()).toISOString(),
+      // tslint:disable-next-line: object-literal-sort-keys
       startTime: time,
       serviceType,
       failureDescription: "",
@@ -49,6 +50,7 @@ function setState(vehicleId, stateDiff, serviceType) {
   return serviceRequests[getKey(customerServiceId, vehicleId)] = {
     status: "Started",
     statusTimestamp: time,
+    // tslint:disable-next-line: object-literal-sort-keys
     startTime: time,
     serviceType,
     failureDescription: "",

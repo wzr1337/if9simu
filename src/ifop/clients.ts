@@ -35,8 +35,8 @@ function getKey(userName: string, deviceID: string) {
 }
 
 export function isDeviceRegistered(deviceId: string, userName?: string, userId?: string) {
-  if(!userName && !userId) {
-    Logger.error("isDeviceRegistered(): Neither userName nor userId specified")
+  if (!userName && !userId) {
+    Logger.error("isDeviceRegistered(): Neither userName nor userId specified");
   }
   return deviceDB[getKey(userName || ifas.getUserNameById(userId), deviceId)];
 }

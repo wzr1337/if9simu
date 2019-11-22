@@ -5,11 +5,11 @@ import { Logger } from "../utils/logger";
 import { checkServiceToken, invalidateServiceToken } from "./authenticate";
 import { dispatch2Vehicle } from "./serviceDispatcher";
 
-
 function initiateService(vin, serviceName, serviceToken) {
   const userId = getUserIdByVIN(vin);
   if (!serviceToken || !checkServiceToken(userId, serviceName , serviceToken)) {
     Logger.error(`invalid serviceToken`);
+    // tslint:disable-next-line: object-literal-sort-keys
     return {status: 401, serviceStatus: {
       errorDescription: "The credentials supplied are invalid",
       errorLabel: "InvalidCredentials",

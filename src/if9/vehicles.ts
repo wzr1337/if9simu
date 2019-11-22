@@ -2,18 +2,13 @@ import { Request, Response } from "express";
 
 export function getVehicles(req: Request, res: Response) {
   const resp = [{
+      role: "Primary",
       userId: "166EA507BA6",
       vin: "SADFA2AN2J1Z23299",
-      role: "Primary",
     },
-    {
-      userId: "166EA507BA6",
-      vin: "SALWA2AK8KA868854",
-      role: "Secondary",
-    }
   ];
   res.status(200).json({
-    vehicles: resp
+    vehicles: resp,
   });
 }
 
@@ -507,35 +502,30 @@ export function getVehicleStatus(req: Request, res: Response) {
         },
       ],
     },
-    "vehicleAlerts": [{
+    // tslint:disable-next-line: object-literal-sort-keys
+    vehicleAlerts: [{
+        active: true,
         key: "WINDOW_OPEN",
-        value: "true",
-        active: true,
         lastUpdatedTime: "2019-11-15T12:40:09+0000",
-      },
-      {
-        key: "TRANSPORT_MODE",
         value: "true",
-        active: true,
-        lastUpdatedTime: "2018-04-26T04:48:03+0000",
       },
       {
+        active: true,
         key: "ENGINE_ON",
-        value: "true",
-        active: true,
         lastUpdatedTime: "2019-11-15T10:39:53+0000",
-      },
-      {
-        key: "FUEL_LEVEL_LTRS",
-        value: "8",
-        active: true,
-        lastUpdatedTime: "2018-04-18T08:51:40+0000",
-      },
-      {
-        key: "REMOTE_CLIMATE",
         value: "true",
+      },
+      {
         active: true,
+        key: "FUEL_LEVEL_LTRS",
+        lastUpdatedTime: "2018-04-18T08:51:40+0000",
+        value: "8",
+      },
+      {
+        active: true,
+        key: "REMOTE_CLIMATE",
         lastUpdatedTime: "2019-11-14T08:01:02+0000",
+        value: "true",
       },
     ],
     lastUpdatedTime: "2019-11-15T12:42:26+0000",

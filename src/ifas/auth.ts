@@ -100,8 +100,8 @@ export function validateAuthToken(username: string, authorizationToken: string) 
 }
 
 export function checkPIN(userId: string, pin: string) {
-  if (!userId) { throw new Error("need a userId")}
-  if (!userIdIndex[userId]) { Logger.error(`UserId ${userId} unknown`);}
+  if (!userId) { throw new Error("need a userId"); }
+  if (!userIdIndex[userId]) { Logger.error(`UserId ${userId} unknown`); }
   return userIdIndex[userId] && userDB[userIdIndex[userId]].pin === pin;
 }
 

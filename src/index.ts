@@ -22,10 +22,10 @@ app.use((req: express.Request, res: express.Response, next?: express.NextFunctio
 });
 
 app.get("/", (req: express.Request, res: express.Response) => res.json({
-    greeting: "Hello World I am the IF9 Simulator.",
+    apiDoc: "https://documenter.getpostman.com/view/6250319/RznBMzqo?version=latest#475bbfde-06b2-4677-a188-3f54a36d4321",
     author: "wzr1337",
+    greeting: "Hello World I am the IF9 Simulator.",
     purpose: "playground for ConnectedCar: From APIs to Zecurity",
-    apiDoc: "https://documenter.getpostman.com/view/6250319/RznBMzqo?version=latest#475bbfde-06b2-4677-a188-3f54a36d4321"
   }));
 
 app.use("/ifas", ifasRouter); // Forwards any requests to the /ifas URI to our ifas Router

@@ -1,14 +1,14 @@
 import {NextFunction, Request, Response} from "express";
 import { v4 } from "uuid";
 import { checkPIN, getUserNameByVIN } from "../ifas/auth";
-import * as ifop from "../ifop/clients"
+import * as ifop from "../ifop/clients";
 import { Logger } from "../utils/logger";
 
 const serviceTokens = {
 
 };
 
-export function authenticate(req: Request, res: Response, next?: NextFunction){
+export function authenticate(req: Request, res: Response, next?: NextFunction) {
 
   if (! req.body.serviceName) {
     Logger.error(`authenticate(): missing serviceName in body`);
@@ -22,12 +22,11 @@ export function authenticate(req: Request, res: Response, next?: NextFunction){
   const serviceName = req.body.serviceName;
   const userid = req.params.userid;
   const token = v4();
-  serviceTokens[userid]= serviceTokens[userid] || {};
+  serviceTokens[userid] = serviceTokens[userid] || {};
   serviceTokens[userid][serviceName] = serviceTokens[userid][serviceName] || [];
   serviceTokens[userid][serviceName].push(token);
   return res.status(200).json({token});
 }
-
 
 export function checkServiceToken(userId: string, serviceName: string, token: string) {
   // tslint:disable-next-line: max-line-length
@@ -36,7 +35,7 @@ export function checkServiceToken(userId: string, serviceName: string, token: st
 
 export function invalidateServiceToken(userId: string, serviceName: string, token: string) {
   // tslint:disable-next-line: max-line-length
-  if(!serviceTokens[userId] || !serviceTokens[userId][serviceName] || serviceTokens[userId][serviceName].indexOf(token) === -1) {
+  if (!serviceTokens[userId] || !serviceTokens[userId][serviceName] || serviceTokens[userId][serviceName].indexOf(token) === -1) {
     return true; // it is already invalid
   }
   serviceTokens[userId][serviceName].splice(serviceTokens[userId][serviceName].indexOf(token), 1);
