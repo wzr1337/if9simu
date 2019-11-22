@@ -120,3 +120,7 @@ export function getUserIdByVIN(VIN: string) {
 export function getVehiclesByUserId(userId: string) {
   return userDB[userIdIndex[userId]].vehicles;
 }
+
+export function getKnownVINS() {
+  return Object.keys(VINIndex);
+}

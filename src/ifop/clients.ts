@@ -35,8 +35,8 @@ function getKey(userName: string, deviceID: string) {
 }
 
 export function isDeviceRegistered(deviceId: string, userName?: string, userId?: string) {
-  Logger.debug(deviceId, userName, userId);
-  Logger.debug(JSON.stringify(deviceDB));
+  // Logger.debug(deviceId, userName, userId);
+  // Logger.debug(JSON.stringify(deviceDB));
   if (!userName && !userId) {
     Logger.error("isDeviceRegistered(): Neither userName nor userId specified");
   }

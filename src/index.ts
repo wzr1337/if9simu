@@ -5,6 +5,7 @@ import { if9Router} from "./if9/router";
 import { ifasRouter} from "./ifas/router";
 import { ifOpRouter} from "./ifop/router";
 import { Logger } from "./utils/logger";
+import { init as initVehicles, setVehicleStatus } from "./if9/vehicles";
 
 // the app
 const app = express();
@@ -14,6 +15,9 @@ app.use(bodyParser.json({type: (type) => {
   // tslint:disable-next-line: max-line-length
   return type.headers["content-type"].match(/(\*\/\*)|(application\/.*\+?json)/g); // needed to allow parsing of any json content-type
 }}));
+
+// necessary initializations
+initVehicles();
 
 // log into console
 app.use((req: express.Request, res: express.Response, next?: express.NextFunction) => {

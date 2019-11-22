@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import vehicles from "../config/vehicles.json";
 import { Logger } from "../utils/logger";
 import { getRandomInt } from "../utils/math";
+import { setVehicleStatus } from "./vehicles";
 
 const serviceRequests = {
 
@@ -30,7 +30,7 @@ function setState(vehicleId, stateDiff, serviceType) {
   // create a new request
   const time = (new Date()).toISOString();
   setTimeout(() => {
-    vehicles[vehicleId] = vehicles[vehicleId] ? Object.assign(vehicles[vehicleId], stateDiff) : stateDiff;
+    setVehicleStatus(vehicleId, stateDiff);
     Logger.info(`Set vehicle state for "${vehicleId}" state to:`);
     serviceRequests[getKey(customerServiceId, vehicleId)] = {
       status: "Successful",
