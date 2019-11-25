@@ -17,7 +17,27 @@ To use the software simply run:
 $ npm run start
 ```
 
-## Supported features
+## Supported endpoints
+
+So far implemented:
+`GET /`
+`GET /ifas`
+`POST /ifas/jlr/tokens`
+`GET /if9`
+`GET /if9/jlr/users/:userid/vehicles`
+`GET /if9/jlr/users/:userid/vehicles`
+`POST /if9/jlr/vehicles/:VIN/users/:userid/authenticate`
+`POST /if9/jlr/vehicles/:VIN/*`
+`POST /if9/jlr/vehicles/:VIN/unlock`
+`POST /if9/jlr/vehicles/:VIN/RDU`
+`POST /if9/jlr/vehicles/:VIN/lock`
+`POST /if9/jlr/vehicles/:VIN/RDL`
+`POST /if9/jlr/vehicles/:VIN/honkBlink`
+`POST /if9/jlr/vehicles/:VIN/hblf`
+`GET /if9/jlr/vehicles/:VIN/status`
+`GET /if9/jlr/vehicles/:VIN/services/:customerServiceId`
+`GET /ifop`
+`POST /ifop/jlr/users/:userName/clients`
 
 ### Login
 you can login with username and password as well as refresh_token as long as your server session is up and running.

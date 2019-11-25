@@ -2,10 +2,10 @@ import * as bodyParser from "body-parser";
 import express from "express";
 import { AddressInfo } from "net";
 import { if9Router} from "./if9/router";
+import { init as initVehicles, setVehicleStatus } from "./if9/vehicles";
 import { ifasRouter} from "./ifas/router";
 import { ifOpRouter} from "./ifop/router";
 import { Logger } from "./utils/logger";
-import { init as initVehicles, setVehicleStatus } from "./if9/vehicles";
 
 // the app
 const app = express();
@@ -44,3 +44,33 @@ const server = app.listen(3333, () => {
   Logger.info(`IF9 Simulator app listening at http://${host}:${port}`);
 
 });
+
+function print(path, layer) {
+  if (layer.route) {
+    layer.route.stack.forEach(print.bind(null, path.concat(split(layer.route.path))));
+  } else if (layer.name === "router" && layer.handle.stack) {
+    layer.handle.stack.forEach(print.bind(null, path.concat(split(layer.regexp))));
+  } else if (layer.method) {
+    console.log(`${layer.method.toUpperCase()} /${path.concat(split(layer.regexp)).filter(Boolean).join("/")}`);
+  }
+}
+
+function split(thing) {
+  if (typeof thing === "string") {
+    return thing.split("/");
+  } else if (thing.fast_slash) {
+    return "";
+  } else {
+    const match = thing.toString()
+      .replace("\\/?", "")
+      .replace("(?=\\/|$)", "$")
+      .match(/^\/\^((?:\\[.*+?^${}()|[\]\\\/]|[^.*+?^${}()|[\]\\\/])*)\$\//);
+    return match
+      ? match[1].replace(/\\(.)/g, "$1").split("/")
+      : "<complex:" + thing.toString() + ">"
+  }
+}
+
+console.log("============================= Supported endpoints =============================");
+app._router.stack.forEach(print.bind(null, []));
+console.log("===============================================================================");
