@@ -70,7 +70,7 @@ describe("TEST auth", () => {
     const spySendStatus = jest.spyOn(res, "sendStatus");
     auth.tokens(req, res);
 
-    expect(spySendStatus).toHaveBeenCalledWith(403);
-    expect(res.statusCode).toBe(403);
+    expect(spySendStatus).toHaveBeenCalledWith(400);
+    expect(res.statusCode).toBe(400);
   });
 });

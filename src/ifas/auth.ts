@@ -27,6 +27,10 @@ export function tokens(req: Request, res: Response) {
     return res.sendStatus(400);
   }
 
+  if (!req.body) {
+    return res.sendStatus(400);
+  }
+
   if (!req.body.grant_type || (req.body.grant_type !== "password" && req.body.grant_type !== "refresh_token")) {
     return res.sendStatus(403);
   }
