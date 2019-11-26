@@ -21,7 +21,7 @@ for (const userName in userDB) {
   }
 }
 
-export function tokens(req: Request, res: Response) {
+export async function tokens(req: Request, res: Response) {
   const contype = req.headers["content-type"];
   if (!contype || contype.indexOf("application/json") !== 0) {
     return res.sendStatus(400);

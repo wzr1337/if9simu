@@ -17,6 +17,14 @@ To use the software simply run:
 $ npm run start
 ```
 
+## Develop it
+
+To use develop and rebuild the software on change run:
+
+```bash
+$ npm run watch
+```
+
 ## Supported endpoints
 
 So far implemented:

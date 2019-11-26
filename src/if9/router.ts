@@ -1,7 +1,7 @@
 import * as express from "express";
 import { authenticate, validateServiceRequest } from "./authenticate";
-import { hblf, lock, unlock } from "./services";
 import { getServiceStatus } from "./serviceDispatcher";
+import { hblf, lock, unlock } from "./services";
 import { getVehicles, getVehicleStatus, validateVehicleGETRequest } from "./vehicles";
 
 export const if9Router = express.Router();

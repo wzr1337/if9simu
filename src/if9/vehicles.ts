@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { getVehiclesByUserId, getKnownVINS } from "../ifas/auth";
+import { getKnownVINS, getVehiclesByUserId } from "../ifas/auth";
 import * as ifop from "../ifop/clients";
 import { Logger } from "../utils/logger";
 

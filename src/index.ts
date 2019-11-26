@@ -51,6 +51,7 @@ function print(path, layer) {
   } else if (layer.name === "router" && layer.handle.stack) {
     layer.handle.stack.forEach(print.bind(null, path.concat(split(layer.regexp))));
   } else if (layer.method) {
+    // tslint:disable-next-line: no-console
     console.log(`${layer.method.toUpperCase()} /${path.concat(split(layer.regexp)).filter(Boolean).join("/")}`);
   }
 }
@@ -67,10 +68,12 @@ function split(thing) {
       .match(/^\/\^((?:\\[.*+?^${}()|[\]\\\/]|[^.*+?^${}()|[\]\\\/])*)\$\//);
     return match
       ? match[1].replace(/\\(.)/g, "$1").split("/")
-      : "<complex:" + thing.toString() + ">"
+      : "<complex:" + thing.toString() + ">";
   }
 }
 
+// tslint:disable-next-line: no-console
 console.log("============================= Supported endpoints =============================");
 app._router.stack.forEach(print.bind(null, []));
+// tslint:disable-next-line: no-console
 console.log("===============================================================================");
