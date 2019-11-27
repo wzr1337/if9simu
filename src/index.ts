@@ -2,7 +2,8 @@ import * as bodyParser from "body-parser";
 import express from "express";
 import { AddressInfo } from "net";
 import { if9Router} from "./if9/router";
-import { init as initVehicles, setVehicleStatus } from "./if9/vehicles";
+import { init as initVehicles } from "./if9/vehicles";
+import { init as initUsers} from "./ifas/auth";
 import { ifasRouter} from "./ifas/router";
 import { ifOpRouter} from "./ifop/router";
 import { Logger } from "./utils/logger";
@@ -17,6 +18,7 @@ app.use(bodyParser.json({type: (type) => {
 }}));
 
 // necessary initializations
+initUsers();
 initVehicles();
 
 // log into console

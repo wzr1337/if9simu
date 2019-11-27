@@ -12,11 +12,13 @@ const refreshTokens = {};
 const userIdIndex: {[userId: string]: string} = {};
 const VINIndex: {[VIN: string]: string} = {};
 
-for (const userName in userDB) {
-  if (userDB.hasOwnProperty(userName)) {
-    userIdIndex[userDB[userName].userId] = userName;
-    for (const vehicle of userDB[userName].vehicles) {
-      VINIndex[vehicle.vin] = userName;
+export async function init() {
+  for (const userName in userDB) {
+    if (userDB.hasOwnProperty(userName)) {
+      userIdIndex[userDB[userName].userId] = userName;
+      for (const vehicle of userDB[userName].vehicles) {
+        VINIndex[vehicle.vin] = userName;
+      }
     }
   }
 }

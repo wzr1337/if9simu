@@ -1,0 +1,7 @@
+import { ifOpRouter } from "./router";
+
+describe("ifOpRouter", () => {
+  it("should export ifOpRouter", () => {
+    expect(ifOpRouter).toBeDefined();
+  });
+});
