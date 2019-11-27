@@ -1,6 +1,6 @@
 {
   "name": "IF9Sim",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Just a small Sim",
   "main": "dist/index.js",
   "nodemonConfig": {
