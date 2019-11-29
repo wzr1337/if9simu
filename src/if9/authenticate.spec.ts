@@ -3,7 +3,6 @@ import MockExpressResponse from "mock-express-response";
 
 import userDB from "../config/users.json";
 import { init } from "../ifas/auth";
-import { initDeviceDB } from "../ifop/clients";
 
 import auth = require("../ifas/auth");
 import clients = require("../ifop/clients");
@@ -17,7 +16,6 @@ let rdlOptions;
 beforeEach(() => {
 
   init();
-  initDeviceDB();
 
   options = {
     body: {
@@ -114,6 +112,9 @@ describe("TEST validateServiceRequest", () => {
 
     const req = new MockExpressRequest(rdlOptions);
     const res = new MockExpressResponse();
+
+    const spyVIN = jest.spyOn(clients, "isDeviceRegistered");
+    spyVIN.mockReturnValueOnce(true);
 
     authenticate.validateServiceRequest(req, res, next);
     expect(next).toHaveBeenCalled();

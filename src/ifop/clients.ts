@@ -2,19 +2,9 @@ import {NextFunction, Request, Response} from "express";
 import * as ifas from "../ifas/auth";
 import { Logger } from "../utils/logger";
 
-import userDB from "../config/users.json";
-
 const deviceDB = {
 
 };
-
-export function initDeviceDB() {
-  for (const userName in userDB) {
-    if (userDB.hasOwnProperty(userName)) {
-      deviceDB[getKey(userName, userDB[userName].deviceID)] = true;
-    }
-  }
-}
 
 export function clients(req: Request, res: Response, next?: NextFunction) {
 
