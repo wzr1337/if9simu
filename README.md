@@ -1,6 +1,6 @@
 # IF9 simulation
 
-![build status](https://travis-ci.com/wzr1337/if9simu.svg?branch=master)
+[![Build Status](https://travis-ci.com/wzr1337/if9simu.svg?branch=master)](https://travis-ci.com/wzr1337/if9simu)
 
 This is a small simulation of JLRs IF9. It is far from complete and was developed to suport the "Connected Car: From APIs to Zecurity" class.
 
