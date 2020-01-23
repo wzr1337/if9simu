@@ -17,7 +17,7 @@ $ npm i
 To use the software simply run:
 
 ```bash
-$ npm run start
+$ npm start
 ```
 
 ## Develop it
