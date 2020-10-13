@@ -1,0 +1,4021 @@
+{
+	"info": {
+		"_postman_id": "e230084a-0e48-4a66-8956-42312bc2784b",
+		"name": "Jaguar InControl API",
+		"description": "This is an unofficial documentation of the JLR InControl Remote control API. The API has been reversed engineered and is in no way complete and is probably not entirely accurate. It's still work in progress and will change significantly. The API features the ability to retrieve information from the authenticated user and the associated vehicles as well as controlling various vehicle functions.\n\nThe API uses multiple different base URLs and the different requests require various combinations of specific `Accept`and `Content-Type`header values as well as a plethora of different authentication tokens and pin values. ",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "user authentication",
+			"item": [
+				{
+					"name": "auth",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d78feda3-176f-4b79-8ee3-651e5d244b54",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"access_token\", jsonData.access_token);",
+									"postman.setEnvironmentVariable(\"authorization_token\", jsonData.authorization_token);",
+									"postman.setEnvironmentVariable(\"refresh_token\", jsonData.refresh_token);",
+									"postman.setEnvironmentVariable(\"expires_in\", jsonData.expires_in);",
+									"",
+									"",
+									"pm.test(\"Server response must be valid and have a JSON body\", function () {",
+									"     // assert that the status code is 200",
+									"     pm.response.to.be.ok; // info, success, redirection, clientError,  serverError, are other variants",
+									"     // assert that the response has a valid JSON body",
+									"     pm.response.to.be.json; // this assertion also checks if a body  exists, so the above check is not needed",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"description": "(Required) hard coded basic auth passsword.",
+								"key": "Authorization",
+								"value": "Basic YXM6YXNwYXNz"
+							},
+							{
+								"description": "UUID4 device ID",
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Connection",
+								"value": "close"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"grant_type\":\"password\",\"password\":\"{{password}}\",\"username\":\"{{username}}\"}"
+						},
+						"url": {
+							"raw": "{{ifasurl}}/jlr/tokens",
+							"host": [
+								"{{ifasurl}}"
+							],
+							"path": [
+								"jlr",
+								"tokens"
+							]
+						},
+						"description": "Initial user authentication requires you to pass your username (email address) and password as well as specifying the appropriate grant type. The server will return with an access token, authorization token, expiration timer, refresh token and a token type indicator.\n\nThe access token is used for the actual bearer authentication. It's unclear what the purpose of the refresh token and authorization token is at this point but it must be included in the body when registering a device.\n\nNote that the Basic auth password must be included. It's a hard coded value that seemingly serves no real purpose other than to satisfy some arbitrary requirement.\n\nThe access token must be included in all subsequent requests as the `Authorization` bearer in the HTTP header."
+					},
+					"response": []
+				},
+				{
+					"name": "refresh token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7df1b497-0fdb-4478-a414-044d3d310072",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"access_token\", jsonData.access_token);",
+									"postman.setEnvironmentVariable(\"authorization_token\", jsonData.authorization_token);",
+									"postman.setEnvironmentVariable(\"refresh_token\", jsonData.refresh_token);",
+									"postman.setEnvironmentVariable(\"expires_in\", jsonData.expires_in);",
+									"",
+									"",
+									"pm.test(\"Server response must be valid and have a JSON body\", function () {",
+									"     // assert that the status code is 200",
+									"     pm.response.to.be.ok; // info, success, redirection, clientError,  serverError, are other variants",
+									"     // assert that the response has a valid JSON body",
+									"     pm.response.to.be.json; // this assertion also checks if a body  exists, so the above check is not needed",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"description": "(Required) hard coded basic auth passsword.",
+								"key": "Authorization",
+								"value": "Basic YXM6YXNwYXNz"
+							},
+							{
+								"description": "UUID4 device ID",
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Connection",
+								"value": "close"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"grant_type\":\"refresh_token\",\"refresh_token\":\"{{refresh_token}}\"}"
+						},
+						"url": {
+							"raw": "{{ifasurl}}/jlr/tokens",
+							"protocol": "https",
+							"host": [
+								"ifas",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"ifas",
+								"jlr",
+								"tokens"
+							]
+						},
+						"description": "Using a refresh token before the access token expiration it is possible to request new tokens without having to submit username and password.\n\nNote that after refreshing the access token you will have to perform device registration and user login again."
+					},
+					"response": []
+				},
+				{
+					"name": "device registration",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "c7dc866e-363b-45dd-8a38-902457c540d3",
+								"exec": [
+									"pm.test(\"Server returns correct response code (204)\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Connection",
+								"value": "close"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"access_token\": \"{{access_token}}\",\n    \"authorization_token\": \"{{authorization_token}}\",\n    \"expires_in\": \"{{expires_in}}\",\n    \"deviceID\":\"{{deviceId}}\"\n}+"
+						},
+						"url": {
+							"raw": "{{ifopurl}}/jlr/users/{{username}}/clients",
+							"protocol": "https",
+							"host": [
+								"ifop",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"ifop",
+								"jlr",
+								"users",
+								"{{username}}",
+								"clients"
+							]
+						},
+						"description": "After a succesful user authentication it is neccessary to register a device. A device is simply a UUID4 value that is designated the deviceID. Once the device Id is registered, both the device ID and the access token need to be supplied when accessing the vehicle service.\n\nThe server should return 204, and hence, an empty body, if the request was accepted."
+					},
+					"response": []
+				},
+				{
+					"name": "login user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "9f7012d9-c9ec-4b04-9ff6-995dcb467aeb",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"userid\", jsonData.userId);",
+									"",
+									"pm.test(\"Server response must be valid and have a JSON body\", function () {",
+									"     // assert that the status code is 200",
+									"     pm.response.to.be.ok; // info, success, redirection, clientError,  serverError, are other variants",
+									"     // assert that the response has a valid JSON body",
+									"     pm.response.to.be.json; // this assertion also checks if a body  exists, so the above check is not needed",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.User-v3+json",
+								"description": "Accept type for user info"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": "Content type"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}",
+								"description": "registered device ID"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/users?loginName={{username}}",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"users"
+							],
+							"query": [
+								{
+									"key": "loginName",
+									"value": "{{username}}"
+								}
+							]
+						},
+						"description": "After successful user authentication and device id registration, we need to log in the user name and retrieve the user ID. The user ID is required for many vehicle related API functions.\n\nThe server will return user information upon a successful login request."
+					},
+					"response": []
+				}
+			],
+			"description": "User authentication is basically a three step process. First the user credentials are authenticated and various tokens returned. Then an arbitrary device ID is registered before finally you perform a formal login that gives you access to various priviliged operations.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "7ad4eb3d-f917-4eaa-89cd-c1a697aa941b",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "f2380cab-80da-4ab9-b6e3-d3b9b10b916e",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "vehicle information",
+			"item": [
+				{
+					"name": "get vehicle attributes",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/vnd.ngtp.org.VehicleAttributes-v4+json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/attributes  ",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"attributes  "
+							]
+						},
+						"description": "getting attributes for a specific vehicle (VIN)"
+					},
+					"response": []
+				},
+				{
+					"name": "get contact information",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/contactinfo/{{mcc}}",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"contactinfo",
+								"{{mcc}}"
+							]
+						},
+						"description": "Get country specific contact information based on the supplied Mobile Country Code (MCC). Note that it does not show contact information for the specified country specifically, but rather the contact information for a specified VIN given that you find yourself in the given country. \n\nMeaning, if your vehicle was registered in Sweden, this request will still provide you with the Swedish contact details even if you travel to Denmark."
+					},
+					"response": []
+				},
+				{
+					"name": "get vehicle tarrifs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.TariffSettings-v1+json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/tariffs",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"tariffs"
+							]
+						},
+						"description": "Retrieve tarrifs, also known as charging periods, associated with vehicle. The server will return an empty `200 OK` response if not charging period exist."
+					},
+					"response": []
+				},
+				{
+					"name": "get vehicle contact information",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/contactinfo/310",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"contactinfo",
+								"310"
+							]
+						},
+						"description": "Get contact information associated with vehicle."
+					},
+					"response": []
+				},
+				{
+					"name": "get vehicle subscription packages",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/subscriptionpackages",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"subscriptionpackages"
+							]
+						},
+						"description": "Get list of subscription packages for a specific VIN"
+					},
+					"response": []
+				},
+				{
+					"name": "get vehicle status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/vnd.ngtp.org.if9.healthstatus-v2+json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/status",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"status"
+							]
+						},
+						"description": "Get the status for a specific vehicle (VIN)"
+					},
+					"response": []
+				},
+				{
+					"name": "get vehicle status v3",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/vnd.ngtp.org.if9.healthstatus-v3+json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/status?includeInactive=true",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"status"
+							],
+							"query": [
+								{
+									"key": "includeInactive",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Version 3 of the vehicle status API request. The returned data is structured a bit differently here with EV data compartmentalized nicely."
+					},
+					"response": []
+				},
+				{
+					"name": "get service status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v4+json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/services/{{customer_service_id}}",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"services",
+								"{{customer_service_id}}"
+							]
+						},
+						"description": "Whenever a vehicle command is sent the server responds with a service status message. Any given operation is identified by a specific service id, or `customerServiceId`. You can use this id to check the operation status at any time to check whether it's currently running, what the status is, etc."
+					},
+					"response": []
+				},
+				{
+					"name": "get vehicle departure timers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.DepartureTimerSettings-v1+json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/departuretimers",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"departuretimers"
+							]
+						},
+						"description": "get departure timers for specified vehicle."
+					},
+					"response": []
+				},
+				{
+					"name": "get vehicle wakup time",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.VehicleWakeupTime-v2+json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/wakeuptime",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"wakeuptime"
+							]
+						},
+						"description": "Get configured wakeup time for specified vehicle."
+					},
+					"response": []
+				},
+				{
+					"name": "get vehicle trips",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.ngtp.org.triplist-v2+json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/trips?count=1000  ",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"trips"
+							],
+							"query": [
+								{
+									"key": "count",
+									"value": "1000  "
+								}
+							]
+						},
+						"description": "Get the last 1,000 trips associated with the specified vehicle."
+					},
+					"response": []
+				},
+				{
+					"name": "get vehicle trip",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/trips/{{trip_id}}/route?pageSize=1000&page=0",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"trips",
+								"{{trip_id}}",
+								"route"
+							],
+							"query": [
+								{
+									"key": "pageSize",
+									"value": "1000"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Get data associated with a specific trip. \n\nA valid vehicle trip id should be passed along with this request URI."
+					},
+					"response": []
+				},
+				{
+					"name": "get vehicle position",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/position",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"position"
+							]
+						},
+						"description": "get current position of vehicle. Will return lat, long, speed, heading and timestamp."
+					},
+					"response": []
+				},
+				{
+					"name": "get vehicle climate temperature target",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/settings/ClimateControlRccTargetTemp",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"settings",
+								"ClimateControlRccTargetTemp"
+							]
+						},
+						"description": "Get target temperature for the Vehicle climate."
+					},
+					"response": []
+				},
+				{
+					"name": "get vehicle health status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.StartServiceConfiguration-v3+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v4+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{vhs_token}}\"}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/healthstatus",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"healthstatus"
+							]
+						},
+						"description": "Get the health status of the specified VIN. This requires you to pass a valid VHS auth token.\n\nThis operation will effectively refresh the vehicle status. After the request is sent the vehicle will be polled and the API data updated. The request will reply with a `customerServiceId` that you can use to check the status of the service request. Once it's successful the vehicle API data will have been successfully refreshed."
+					},
+					"response": []
+				}
+			],
+			"description": "The API provides numerous ways to retrieve data regarding a specific vehicle. Certain actions, such as retrieving health status requires additional authentication. ",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "a6b6689a-3755-4bf5-a161-d9e1d89a6822",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "d04fac68-c294-4e74-adc7-e8af71fca05c",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "user information",
+			"item": [
+				{
+					"name": "lost password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7c802956-f57a-45f6-9fd9-8287b8f10a9f",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"",
+									"pm.test(\"Server response must be valid and have a JSON body\", function () {",
+									"     // assert that the status code is 200",
+									"     pm.response.to.be.ok; // info, success, redirection, clientError,  serverError, are other variants",
+									"     // assert that the response has a valid JSON body",
+									"     pm.response.to.be.json; // this assertion also checks if a body  exists, so the above check is not needed",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.User-v3+json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic aGlxOnNvbW1hcjEy",
+								"description": "(Required) Hard coded basic auth password",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/users/{{userid}}",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"users",
+								"{{userid}}"
+							]
+						},
+						"description": "Recover lost password for specified username. Uses a hardcoded basic auth password. The server will send out a password recovery email when a succefull request is received."
+					},
+					"response": []
+				},
+				{
+					"name": "get user info from id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "037416fa-6e8c-4911-bf52-6d21a240a580",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"",
+									"pm.test(\"Server response must be valid and have a JSON body\", function () {",
+									"     // assert that the status code is 200",
+									"     pm.response.to.be.ok; // info, success, redirection, clientError,  serverError, are other variants",
+									"     // assert that the response has a valid JSON body",
+									"     pm.response.to.be.json; // this assertion also checks if a body  exists, so the above check is not needed",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.User-v3+json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/users/{{userid}}",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"users",
+								"{{userid}}"
+							]
+						},
+						"description": "List user information based on the user ID."
+					},
+					"response": []
+				},
+				{
+					"name": "get vehicles for user id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1bad8298-c093-4bba-a7e5-3a3fe8c1bd2f",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"",
+									"pm.test(\"Server response must be valid and have a JSON body\", function () {",
+									"     // assert that the status code is 200",
+									"     pm.response.to.be.ok; // info, success, redirection, clientError,  serverError, are other variants",
+									"     // assert that the response has a valid JSON body",
+									"     pm.response.to.be.json; // this assertion also checks if a body  exists, so the above check is not needed",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/users/{{userid}}/vehicles?primaryOnly=true",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"users",
+								"{{userid}}",
+								"vehicles"
+							],
+							"query": [
+								{
+									"key": "primaryOnly",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Lists the vehicles associated with the specified user id. It is unclear at this time what the `primaryOnly` parameter does as all vehicles associated with the user id will be returned regardless. It is possible that this parameter is simply not used for anything."
+					},
+					"response": []
+				},
+				{
+					"name": "update user profile information",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "51c74486-2c45-4b51-bb39-0d296b8669e3",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"",
+									"pm.test(\"Server response must be valid and have a JSON body\", function () {",
+									"     // assert that the status code is 200",
+									"     pm.response.to.be.ok; // info, success, redirection, clientError,  serverError, are other variants",
+									"     // assert that the response has a valid JSON body",
+									"     pm.response.to.be.json; // this assertion also checks if a body  exists, so the above check is not needed",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.User-v3+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"authCredentials\":null,\"contact\":{\"birthday\":null,\"businessPhone\":null,\"emailAddress\":\"myemail@email.com\",\"firstName\":\"First\",\"gender\":null,\"homePhone\":null,\"lastName\":\"Last\",\"middleName\":null,\"mobilePhone\":\"+44412345678\",\"title\":\"mr\",\"userPreferences\":{\"dateFormat\":\"DD.MM.YYYY\",\"language\":\"nb_NO\",\"timeZone\":\"Europe/Brussels\",\"unitsOfMeasurement\":\"Km Litre Celsius VolPerDist Wh DistPerkWh\"}},\"homeAddress\":{\"addressLine1\":\"My Address\",\"addressLine2\":null,\"city\":\"Lillehammer\",\"country\":\"NO\",\"stateProvince\":\"\",\"street\":null,\"zipCode\":\"12345\"},\"homeMarket\":\"NOR\",\"loginName\":\"myemail@email.com\",\"marketingOffersAccepted\":false,\"marketingPrefsUpdatedAt\":\"2019-01-15T22:08:18+0000\",\"nextOfKin\":null,\"pin\":null,\"secureAnswer1\":null,\"secureAnswer2\":null,\"secureAnswer3\":null,\"secureQuestion1\":null,\"secureQuestion2\":null,\"secureQuestion3\":null,\"userId\":\"12345E12345\",\"userType\":null,\"vhsMessagesAccepted\":true}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/users/{{userid}}",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"users",
+								"{{userid}}"
+							]
+						},
+						"description": "Update the profile information for the associated user.\n\nIt's unclear what the `authCredentials` value is used for but it seems like the mobile app just sets it to `null`. "
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "b943d2b8-96c8-49b0-a625-eca1c43b7400",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "d4fc9426-f5f8-4109-8110-340d8a87ea01",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "vehicle commands",
+			"item": [
+				{
+					"name": "honk horn",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.StartServiceConfiguration-v3+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v4+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{hblf_token}}\"}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/honkBlink",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"honkBlink"
+							]
+						},
+						"description": "Honk the horn and flash the lights associated with the specified vehicle. Requires you to pass a HBLF service auth token."
+					},
+					"response": []
+				},
+				{
+					"name": "lock vehicle",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.StartServiceConfiguration-v2+json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{rdl_token}}\"}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/lock",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"lock"
+							]
+						},
+						"description": "Lock the vehicle remotely. Requires a valid RDL service authentication token."
+					},
+					"response": []
+				},
+				{
+					"name": "unlock vehicle",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.StartServiceConfiguration-v2+json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{rdu_token}}\"}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/unlock",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"unlock"
+							]
+						},
+						"description": "Unlock the vehicle remotely. Requires a valid RDU service authentication token."
+					},
+					"response": []
+				},
+				{
+					"name": "stop alarm",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.StartServiceConfiguration-v3+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v4+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{aloff_token}}\"}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/alarmOff",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"alarmOff"
+							]
+						},
+						"description": "Reset the vehicle alarm. Requires a valid ALOFF service authentication token."
+					},
+					"response": []
+				},
+				{
+					"name": "set vehicle nickname and registration number",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/vnd.ngtp.org.VehicleAttributes-v4+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"nickname\":\"my cool name\",\"registrationNumber\":\"REGNUMBER-12345\"}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/attributes",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"attributes"
+							]
+						},
+						"description": "Set the vehicle nick name and registration number."
+					},
+					"response": []
+				},
+				{
+					"name": "start climate preconditioning",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.PhevService-v1+json; charset=utf"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v5+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{ecc_token}}\",\"serviceParameters\":[{\"key\":\"PRECONDITIONING\",\"value\":\"START\"},{\"key\":\"TARGET_TEMPERATURE_CELSIUS\",\"value\":\"210\"}]}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/preconditioning",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"preconditioning"
+							]
+						},
+						"description": "Start the climate preconditioning at the specified tempareture. Note the absense of the decimal sign. 210 equals 21.0C.\n\nFor the LO setting you would pass 155 and for the HI setting you would pass 285.\n\nThis operation requires a valid ECC service authentication token."
+					},
+					"response": []
+				},
+				{
+					"name": "stop climate preconditioning",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.PhevService-v1+json; charset=utf"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v5+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{ecc_token}}\",\"serviceParameters\":[{\"key\":\"PRECONDITIONING\",\"value\":\"STOP\"}]}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/preconditioning",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"preconditioning"
+							]
+						},
+						"description": "Stop the climate preconditioning immediately.\n\nThis operation requires a valid ECC service authentication token."
+					},
+					"response": []
+				},
+				{
+					"name": "start charging",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.PhevService-v1+json; charset=utf"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v5+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{cp_token}}\",\"serviceParameters\":[{\"key\":\"CHARGE_NOW_SETTING\",\"value\":\"FORCE_ON\"}]}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/chargeProfile",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"chargeProfile"
+							]
+						},
+						"description": "Start charging the EV. Requires a valid cp service token."
+					},
+					"response": []
+				},
+				{
+					"name": "stop charging",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.PhevService-v1+json; charset=utf"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v5+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{cp_token}}\",\"serviceParameters\":[{\"key\":\"CHARGE_NOW_SETTING\",\"value\":\"FORCE_OFF\"}]}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/chargeProfile",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"chargeProfile"
+							]
+						},
+						"description": "Stop charging the EV. Requires a valid cp service token."
+					},
+					"response": []
+				},
+				{
+					"name": "set max state of charge",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.PhevService-v1+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v5+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{cp_token}}\",\"serviceParameters\":[{\"key\":\"SET_PERMANENT_MAX_SOC\",\"value\":80}]}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/chargeProfile",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"chargeProfile"
+							]
+						},
+						"description": "Set the maximum state of charge. This requires a valid CP authentication token. The vehicle will never charge more than the specified charge level (in percentage)\n\nNote, this is not a feature the official mobile app exposes to the user."
+					},
+					"response": []
+				},
+				{
+					"name": "set one-off max state of charge",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.PhevService-v1+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v5+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{cp_token}}\",\"serviceParameters\":[{\"key\":\"SET_ONE_OFF_MAX_SOC\",\"value\":80}]}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/chargeProfile",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"chargeProfile"
+							]
+						},
+						"description": "Set the one-off maximum state of charge. This requires a valid CP authentication token. The vehicle will never charge more than the specified charge level (in percentage) for the current charging session. Will presumably reset to whatever was the previous value the next time the vehicle is connected to a charger.\n\nNote, this is not a feature the official mobile app exposes to the user."
+					},
+					"response": []
+				},
+				{
+					"name": "add departure timer",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.PhevService-v1+json; charset=utf"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v5+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{cp_token}}\",\"departureTimerSetting\":{\"timers\":[{\"departureTime\":{\"hour\":6,\"minute\":30},\"timerIndex\":50,\"timerTarget\":{\"singleDay\":{\"day\":13,\"month\":1,\"year\":2019}},\"timerType\":{\"key\":\"BOTHCHARGEANDPRECONDITION\",\"value\":true}}]}}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/chargeProfile",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"chargeProfile"
+							]
+						},
+						"description": "Add a single departure timer for the specified vehicle. You need to pass a year, month, day, hour and minute in order to specify the departure time. A valid CP service token is required.\n\nThe departure timer is seemingly identifier by its numerical index value. A unique index timer value must be specified when creating the departure timer.\n\nNote that if you use an index value that already exist the old departure timer will be overwritten with the new one."
+					},
+					"response": []
+				},
+				{
+					"name": "add repeated departure timer",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.PhevService-v1+json; charset=utf"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v5+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{cp_token}}\",\"departureTimerSetting\":{\"timers\":[{\"departureTime\":{\"hour\":11,\"minute\":30},\"timerIndex\":50,\"timerTarget\":{\"repeatSchedule\":{\"friday\":false,\"monday\":true,\"saturday\":false,\"sunday\":false,\"thursday\":false,\"tuesday\":true,\"wednesday\":true}},\"timerType\":{\"key\":\"BOTHCHARGEANDPRECONDITION\",\"value\":true}}]}}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/chargeProfile",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"chargeProfile"
+							]
+						},
+						"description": "Add repeated departure timer for the specified vehicle. You need to pass a year, month, day, hour and minute in order to specify the departure time. Additionally, you need to specify which weekdays the departure timer should be active for. A valid CP service token is required. "
+					},
+					"response": []
+				},
+				{
+					"name": "delete departure timers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.PhevService-v1+json; charset=utf"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v5+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{cp_token}}\",\"departureTimerSetting\":{\"timers\":[{\"timerIndex\":0}]}}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/chargeProfile",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"chargeProfile"
+							]
+						},
+						"description": "Delete departure timers specified by their index. Requires a valid CP service authentication token.\n\nYou can list multiple departure timers to be deleted."
+					},
+					"response": []
+				},
+				{
+					"name": "add charging period",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.PhevService-v1+json; charset=utf"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v5+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{cp_token}}\",\"tariffSettings\":{\"tariffs\":[{\"tariffIndex\":0,\"tariffDefinition\":{\"enabled\":true,\"repeatSchedule\":{\"monday\":true,\"tuesday\":true,\"wednesday\":true,\"thursday\":true,\"friday\":true,\"saturday\":true,\"sunday\":true},\"tariffZone\":[{\"zoneName\":\"TARIFF_ZONE_A\",\"bandType\":\"OFFPEAK\",\"endTime\":{\"hour\":9,\"minute\":0}},{\"zoneName\":\"TARIFF_ZONE_B\",\"bandType\":\"PEAK\",\"endTime\":{\"hour\":0,\"minute\":0}}]}}]}}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/chargeProfile",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"chargeProfile"
+							]
+						},
+						"description": "Set a time period for charging. The vehicle will prioritize charging during the specified period. \n\nIt's a bit unclear how this part of the API actually works. Specifying a charging period from 01:00 to 08:30 results in three `TARIFF_ZONE` entries with different `bandType` values and end times, 00:00, 01:00 and 08:30. \n\nRequires a valid CP service auth token."
+					},
+					"response": []
+				},
+				{
+					"name": "prioritize climate",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.PhevService-v1+json; charset=utf"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v5+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{ecc_token}}\",\"serviceParameters\":[{\"key\":\"PRIORITY_SETTING\",\"value\":\"PRIORITIZE_RANGE\"}]}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/preconditioning",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"preconditioning"
+							]
+						},
+						"description": "Prioritize climate controls for either range or comfort. \n\nYou can pass either `PRIORITIZE_RANGE`or `PRIORITIZE_COMFORT` in the `serviceParameter` value field to prioritize either range or comfort."
+					},
+					"response": []
+				},
+				{
+					"name": "add wake up time",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.StartServiceConfiguration-v3+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v3+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"serviceCommand\":\"START\",\"startTime\":1547845200000,\"token\":\"{{swu_token}}\"}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/swu",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"swu"
+							]
+						},
+						"description": "The vehicle will enter a sleep mode after four days of inactivity. In order to use remote control features after this time a wake up timer is required. \n\nBy adding a wake up timer for a specific time before the vehicle enters sleep mode you can ensure that the vehicle is available for remote control for a period of time after the specified wake up time.\n\nThis request requires a valid swu service auth token."
+					},
+					"response": []
+				},
+				{
+					"name": "stop wake up time",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.StartServiceConfiguration-v3+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v3+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"serviceCommand\":\"END\", \"token\":\"{{swu_token}}\"}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/swu",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"swu"
+							]
+						},
+						"description": "Cancel the wakeup timer.\n\nThis request requires a valid swu service auth token."
+					},
+					"response": []
+				},
+				{
+					"name": "enable service mode",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.StartServiceConfiguration-v3+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v4+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{prov_token}}\",\"serviceCommand\":\"protectionStrategy_serviceMode\",\"startTime\":null,\"endTime\":1547450047403}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/prov",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"prov"
+							]
+						},
+						"description": "The vehicle will enter service mode which will allow the vehicle to be serviced without InControl triggering a vehicle theft alarm.\n\nThis request requires a valid PROV service authentication token and a future time (in epoch milliseconds) must be provided to specify when the service mode will be disabled again. The mobile app always specifies a timestamp 10 hours in the future and it's not clear whether this is an arbitrary value chosen for the app or if it's actually enforced by the API."
+					},
+					"response": []
+				},
+				{
+					"name": "enable transport mode",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.StartServiceConfiguration-v3+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v4+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{prov_token}}\",\"serviceCommand\":\"protectionStrategy_transportMode\",\"startTime\":null,\"endTime\":1547450047403}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/prov",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"prov"
+							]
+						},
+						"description": "The vehicle will enter service mode which will allow the vehicle to be transported on a ferry, train, etc without InControl triggering a vehicle theft alarm.\n\nThis request requires a valid PROV service authentication token and a future time (in epoch milliseconds) must be provided to specify when the transport mode will be disabled again. The mobile app always specifies a timestamp 10 hours in the future and it's not clear whether this is an arbitrary value chosen for the app or if it's actually enforced by the API."
+					},
+					"response": []
+				},
+				{
+					"name": "enable privacy switch",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.StartServiceConfiguration-v3+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v4+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{prov_token}}\",\"serviceCommand\":\"privacySwitch_on\",\"startTime\":null,\"endTime\":null}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/prov",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"prov"
+							]
+						},
+						"description": "The vehicle will not log journey information as long as privacy mode is enabled. The API seems to support specifying a start and stop time with this request but the mobile app currently just passes `null` values along with the request so that the privacy mode is enabled until the user disables it again. \n\nThis request requires a valid PROV service authentication token."
+					},
+					"response": []
+				},
+				{
+					"name": "disable privacy switch",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.StartServiceConfiguration-v3+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.ServiceStatus-v4+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{prov_token}}\",\"serviceCommand\":\"privacySwitch_off\",\"startTime\":null,\"endTime\":null}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/prov",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"prov"
+							]
+						},
+						"description": "The vehicle will resume journey information logging.\n\nThis request requires a valid PROV service authentication token."
+					},
+					"response": []
+				},
+				{
+					"name": "authenticate VHS",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8e03437b-2ce0-4ada-bab7-5618c9a60a0a",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"vhs_token\", jsonData.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.AuthenticateRequest-v2+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"serviceName\":\"VHS\",\"pin\":\"\"}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/users/{{userid}}/authenticate",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"users",
+								"{{userid}}",
+								"authenticate"
+							]
+						},
+						"description": "Authenticate to the VHS service and obtain the VHS authorization token. This is required for certain vehicle related operations. Retrieving vehicle health status is one example of such an operation.\n\nTo authenticate to the service you nede to pass an empty pin value."
+					},
+					"response": []
+				},
+				{
+					"name": "authenticate HBLF",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ca561498-fb2c-4c2e-bfd9-fb0908c565a6",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"hblf_token\", jsonData.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.AuthenticateRequest-v2+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"serviceName\":\"HBLF\",\"pin\":\"{{last_four_of_vin\"}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/users/{{userid}}/authenticate",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"users",
+								"{{userid}}",
+								"authenticate"
+							]
+						},
+						"description": "Authenticate to the HBLF service. This requires the client to pass a PIN which is the last four digits in the vehicle VIN. I'm assuming HBLF stands for HonkBlink Something something and you need the token returned from this authentication operation to send the honkblink command.\n\nIn order to authenticate to the service, the last four digits of the vehicle VIN number need to be supplied in the body."
+					},
+					"response": []
+				},
+				{
+					"name": "authenticate ECC",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "fa901847-8c4f-4869-b927-425c37376d6c",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"vhs_token\", jsonData.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.AuthenticateRequest-v2+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"serviceName\":\"ECC\",\"pin\":\"{{last_four_of_vin}}\""
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/users/{{userid}}/authenticate",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"users",
+								"{{userid}}",
+								"authenticate"
+							]
+						},
+						"description": "Authenticate to the ECC service. This requires the client to pass a PIN which can be any arbitrary value, including an empty one. However, the mobile app passes the last four digits in the vehicle VIN. The ECC service authentication is required for climate preconditoning controls."
+					},
+					"response": []
+				},
+				{
+					"name": "authenticate CP",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "644d5f66-bf53-4333-aa50-9067c6046f37",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"cp_token\", jsonData.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.AuthenticateRequest-v2+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"serviceName\":\"CP\",\"pin\":\"{{last_four_of_vin}}\"}"
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/users/{{userid}}/authenticate",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"users",
+								"{{userid}}",
+								"authenticate"
+							]
+						},
+						"description": "Authenticate to the CP service. This requires the client to pass a PIN which is the last four digits in the vehicle VIN. The CP service authentication is required for charging profile related operations."
+					},
+					"response": []
+				},
+				{
+					"name": "authenticate RDL",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "9b924957-678f-40ce-b33d-84936fadcf96",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"rdl_token\", jsonData.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.AuthenticateRequest-v2+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"serviceName\":\"RDL\",\"pin\":\"{{user_pin}}\"}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/users/{{userid}}/authenticate",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"users",
+								"{{userid}}",
+								"authenticate"
+							]
+						},
+						"description": "Authenticate to the RDL service. This requires the client to pass the user's personal PIN. The RDL service is used for remotely locking the vehicle."
+					},
+					"response": []
+				},
+				{
+					"name": "authenticate RDU",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e33549fa-d147-4bc4-aa0c-92fa4e9cf5ff",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"rdu_token\", jsonData.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.AuthenticateRequest-v2+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"serviceName\":\"RDU\",\"pin\":\"{{user_pin}}\"}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/users/{{userid}}/authenticate",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"users",
+								"{{userid}}",
+								"authenticate"
+							]
+						},
+						"description": "Authenticate to the RDU service. This requires the client to pass the user's personal PIN. The RDU service is used for remotely unlocking the vehicle."
+					},
+					"response": []
+				},
+				{
+					"name": "authenticate GM",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3022b09c-bd87-4f1e-8573-3af776e08fe8",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"gm_token\", jsonData.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.AuthenticateRequest-v2+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"serviceName\":\"GM\",\"pin\":\"{{user_pin}}\"}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/users/{{userid}}/authenticate",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"users",
+								"{{userid}}",
+								"authenticate"
+							]
+						},
+						"description": "Authenticate to the Guardian mode (GM) service. Requires the user PIN."
+					},
+					"response": []
+				},
+				{
+					"name": "authenticate ALOFF",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "618e8e6f-4218-4ae5-9bec-334a7c864176",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"aloff_token\", jsonData.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.AuthenticateRequest-v2+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"serviceName\":\"ALOFF\",\"pin\":\"{{user_pin}}\"}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/users/{{userid}}/authenticate",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"users",
+								"{{userid}}",
+								"authenticate"
+							]
+						},
+						"description": "Authenticate to the ALOFF service. This requires the client to pass the user's personal PIN. The ALOFF service is used for remotely resetting the vehicle alarm."
+					},
+					"response": []
+				},
+				{
+					"name": "authenticate PROV",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b9c689a0-c7cd-4851-8ff7-c42808ba7b8e",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"prov_token\", jsonData.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.AuthenticateRequest-v2+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"serviceName\":\"PROV\",\"pin\":\"{{user_pin}}\"}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/users/{{userid}}/authenticate",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"users",
+								"{{userid}}",
+								"authenticate"
+							]
+						},
+						"description": "Authenticate to the PROV service. This requires the client to pass the user's personal PIN. This service is used for enabling and disabling service mode."
+					},
+					"response": []
+				},
+				{
+					"name": "authenticate SWU",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "626d8c1c-9def-4cc9-a243-1bf34d333c84",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"swu_token\", jsonData.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.wirelesscar.ngtp.if9.AuthenticateRequest-v2+json; charset=utf-8"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"serviceName\":\"SWU\",\"pin\":\"\"}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/users/{{userid}}/authenticate",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"users",
+								"{{userid}}",
+								"authenticate"
+							]
+						},
+						"description": "Authenticate to the SWU service. This requires the client to pass an empty PIN value. The SWU service is used for setting wake up timers."
+					},
+					"response": []
+				},
+				{
+					"name": "delete vehicle trip",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/trips/{{trip_id}}",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"trips",
+								"{{trip_id}}"
+							]
+						},
+						"description": "Delete specified trip from the trip journal.\n\nA valid vehicle trip id should be passed along with this request URI."
+					},
+					"response": []
+				}
+			],
+			"description": "Vehicle operation commands. They seem to all require dedicated authentication tokens which are retrieved by submitting various strange PIN values. Very \"security by obscurity\"",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "d91a54b6-55a1-4a5c-ad31-3c3bf8b18bfd",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "2f6f3c50-6a57-4cc0-b6df-e3fe4b51254f",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "misc",
+			"item": [
+				{
+					"name": "app version check",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"type\":\"ANDROID\",\"version\":\"1.70\"}"
+						},
+						"url": {
+							"raw": "https://incontrol.jaguar.com/jaguar-portal-owner-web/app-version-check/compare",
+							"protocol": "https",
+							"host": [
+								"incontrol",
+								"jaguar",
+								"com"
+							],
+							"path": [
+								"jaguar-portal-owner-web",
+								"app-version-check",
+								"compare"
+							]
+						},
+						"description": "Some sort of validation of mobile app version. Returns an `state`value indicating whether app version is supported."
+					},
+					"response": [
+						{
+							"name": "Android app version 1.70 check",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"type\":\"ANDROID\",\"version\":\"1.70\"}"
+								},
+								"url": {
+									"raw": "https://incontrol.jaguar.com/jaguar-portal-owner-web/app-version-check/compare",
+									"protocol": "https",
+									"host": [
+										"incontrol",
+										"jaguar",
+										"com"
+									],
+									"path": [
+										"jaguar-portal-owner-web",
+										"app-version-check",
+										"compare"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Cache-Control",
+									"value": "no-cache",
+									"name": "Cache-Control",
+									"description": "Tells all caching mechanisms from server to client whether they may cache this object. It is measured in seconds"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-store",
+									"name": "Cache-Control",
+									"description": "Tells all caching mechanisms from server to client whether they may cache this object. It is measured in seconds"
+								},
+								{
+									"key": "Connection",
+									"value": "close",
+									"name": "Connection",
+									"description": "Options that are desired for the connection"
+								},
+								{
+									"key": "Content-Security-Policy",
+									"value": "default-src 'unsafe-inline' 'unsafe-eval' 'self' data: *.google.com *.googleapis.com *.gstatic.com *.google-analytics.com *.joinhoney.com *.jlrmotor.com *.googletagmanager.com *.cloudfront.net *.amap.com wss://*.amap.com *.landrover.com *.prod-row.jlrmotor.com *.wirelesscar.net *.jaguar.com; img-src 'self' data: *.google.com *.googleapis.com *.gstatic.com *.google-analytics.com *.joinhoney.com *.jlrmotor.com *.googletagmanager.com *.cloudfront.net *.amap.com wss://*.amap.com *.jlrmotor.com *.amazonaws.com *.wirelesscar.net *.d3370ejym0x8p5.cloudfront.net *.dyxeukcs8zsz7.cloudfront.net",
+									"name": "Content-Security-Policy",
+									"description": "Custom header"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json;charset=UTF-8",
+									"name": "Content-Type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 09 Jan 2019 22:45:17 GMT",
+									"name": "Date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "Expires",
+									"value": "Thu, 01 Jan 1970 00:00:00 GMT",
+									"name": "Expires",
+									"description": "Gives the date/time after which the response is considered stale"
+								},
+								{
+									"key": "Pragma",
+									"value": "no-cache",
+									"name": "Pragma",
+									"description": "Implementation-specific headers that may have various effects anywhere along the request-response chain."
+								},
+								{
+									"key": "Set-Cookie",
+									"value": "JSESSIONID=89C7C7A0E8A182BF64A9DA8DA8C2B779; Path=/jaguar-portal-owner-web/; HttpOnly",
+									"name": "Set-Cookie",
+									"description": "an HTTP cookie"
+								},
+								{
+									"key": "Strict-Transport-Security",
+									"value": "max-age=31536000",
+									"name": "Strict-Transport-Security",
+									"description": "A HSTS Policy informing the HTTP client how long to cache the HTTPS only policy and whether this applies to subdomains."
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked",
+									"name": "Transfer-Encoding",
+									"description": "The form of encoding used to safely transfer the entity to the user. Currently defined methods are: chunked, compress, deflate, gzip, identity."
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff",
+									"name": "X-Content-Type-Options",
+									"description": "The only defined value, \"nosniff\", prevents Internet Explorer from MIME-sniffing a response away from the declared content-type"
+								},
+								{
+									"key": "X-FRAME-OPTIONS",
+									"value": "DENY",
+									"name": "X-FRAME-OPTIONS",
+									"description": "Clickjacking protection: \"deny\" - no rendering within a frame, \"sameorigin\" - no rendering if origin mismatch"
+								},
+								{
+									"key": "X-XSS-Protection",
+									"value": "1",
+									"name": "X-XSS-Protection",
+									"description": "Cross-site scripting (XSS) filter"
+								}
+							],
+							"cookie": [
+								{
+									"expires": "Invalid Date",
+									"httpOnly": true,
+									"domain": "incontrol.jaguar.com",
+									"path": "/jaguar-portal-owner-web/",
+									"secure": false,
+									"value": "89C7C7A0E8A182BF64A9DA8DA8C2B779",
+									"key": "JSESSIONID"
+								}
+							],
+							"body": "{\"state\":\"OK\"}"
+						}
+					]
+				},
+				{
+					"name": "reverse geocode",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/geocode/reverse/{{lat}}/{{lon}}/en",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"geocode",
+								"reverse",
+								"{{lat}}",
+								"{{lon}}",
+								"en"
+							]
+						},
+						"description": "Lookup a lat/long combination and get address information associated with the supplied coordinates."
+					},
+					"response": [
+						{
+							"name": "Reverse geocode example",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Device-Id",
+										"value": "{{deviceId}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://jlp-ifoa.wirelesscar.net/if9/jlr/geocode/reverse/59.915475/10.733054/en",
+									"protocol": "https",
+									"host": [
+										"jlp-ifoa",
+										"wirelesscar",
+										"net"
+									],
+									"path": [
+										"if9",
+										"jlr",
+										"geocode",
+										"reverse",
+										"59.915475",
+										"10.733054",
+										"en"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Sun, 20 Jan 2019 18:37:54 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "Apache-Coyote/1.1"
+								},
+								{
+									"key": "X-Powered-By",
+									"value": "Servlet 2.5; JBoss-5.0/JBossWeb-2.1"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "403"
+								},
+								{
+									"key": "Set-Cookie",
+									"value": "JSESSIONID=09CCA7EF2FF836688195914AD4739931; Path=/jlr-si"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"formattedAddress\": \"Frederiks gate 3, 0161 Oslo, Norway\",\n    \"street\": \"Frederiks gate\",\n    \"streetNumber\": \"3\",\n    \"postalcode\": \"0161\",\n    \"city\": null,\n    \"citycode\": null,\n    \"region\": \"Oslo\",\n    \"regionCode\": null,\n    \"country\": \"Norway\",\n    \"countryCodeISO2\": \"NO\",\n    \"province\": \"Oslo kommune\",\n    \"district\": null,\n    \"telephoneAreaCode\": null,\n    \"additionalInfo\": null,\n    \"provinceAdcode\": null,\n    \"cityAdcode\": null,\n    \"districtAdcode\": null,\n    \"adcode\": null,\n    \"any\": null\n}"
+						}
+					]
+				}
+			],
+			"description": "Various API requests that do not belong in other categories.",
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Guardian Mode",
+			"item": [
+				{
+					"name": "delete guardian mode alert",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept-Encoding",
+								"type": "text",
+								"value": "gzip,deflate"
+							},
+							{
+								"key": "X-servicetoken",
+								"type": "text",
+								"value": "{{gm_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/gm/alerts",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"gm",
+								"alerts"
+							]
+						},
+						"description": "Delete the Guardian Mode alert."
+					},
+					"response": []
+				},
+				{
+					"name": "delete guardian mode alarm",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept-Encoding",
+								"value": "gzip,deflate",
+								"type": "text"
+							},
+							{
+								"key": "X-servicetoken",
+								"value": "{{gm_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/gm/alarms/{{gm_id}}",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"gm",
+								"alarms",
+								"{{gm_id}}"
+							]
+						},
+						"description": "Delete the specified Guardian Mode alarm period. Will effectively disable Guardian Mode if only one alarm period is enabled"
+					},
+					"response": []
+				},
+				{
+					"name": "enable guardian mode",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.GuardianAlarmList-v1+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"token\":\"{{gm_token}}\",\"status\":\"ACTIVE\",\"endTime\":\"{{end_time}}\" }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/gm/alarms",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"gm",
+								"alarms"
+							]
+						},
+						"description": "Guardian Mode is a security feature that will generate alarms when vehicle interaction is detected. Such interactions include:\n\n- Vehicle Status – Unlocked\n- Engine On\n- Window(s) Open\n- Door(s) Open\n- Boot Open\n- Bonnet Open\n- Sunroof Open\n- Roof Open\n\nThe user pin is required in order to enable the feature.\n\nThe end time should be specified as epoch millis.\n\nGuardian Mode will only generate a single alert and that alert does not indicate what sort of interaction took place, just the timestamp."
+					},
+					"response": []
+				},
+				{
+					"name": "get guardian mode alert",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/wirelesscar.GuardianAlert-v1+json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/gm/alerts  ",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"gm",
+								"alerts  "
+							]
+						},
+						"description": "Returns the latest Guardian Mode alert for the specified vehicle."
+					},
+					"response": []
+				},
+				{
+					"name": "get guardian mode alarms",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.GuardianStatus-v1+json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/gm/alarms  ",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"gm",
+								"alarms  "
+							]
+						},
+						"description": "Returns a list of Guardian Mode alarm schedules. Will list all the scheduled Guardian mode time periods."
+					},
+					"response": []
+				},
+				{
+					"name": "get guardian mode status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.GuardianStatus-v1+json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/gm/status",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"gm",
+								"status"
+							]
+						},
+						"description": "Get the Guardian Mode status indicating whether Guardian Mode is active."
+					},
+					"response": []
+				},
+				{
+					"name": "get guardian mode user settings",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "Accept: application/vnd.wirelesscar.ngtp.if9.GuardianUserSettings-v1+json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/gm/settings/user",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"gm",
+								"settings",
+								"user"
+							]
+						},
+						"description": "Returns the Guardian Mode user settings"
+					},
+					"response": []
+				},
+				{
+					"name": "get guardian mode system settings",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/vnd.wirelesscar.ngtp.if9.GuardianSystemSettings-v1+json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Device-Id",
+								"value": "{{deviceId}}"
+							}
+						],
+						"url": {
+							"raw": "{{if9url}}/jlr/vehicles/{{vin}}/gm/settings/system",
+							"protocol": "https",
+							"host": [
+								"if9",
+								"prod-row",
+								"jlrmotor",
+								"com"
+							],
+							"path": [
+								"if9",
+								"jlr",
+								"vehicles",
+								"{{vin}}",
+								"gm",
+								"settings",
+								"system"
+							]
+						},
+						"description": "Returns the Guardian Mode system settings"
+					},
+					"response": []
+				}
+			],
+			"description": "Guardian Mode is a newly introduced feature that allows the user to enable a special mode where vehicle interactions will generate an alert that the mobile apps can choose to use for user notifications.\n\nThe Guardian Mode seems to be implemented entirely on the server side without any vehicle communication. It presumably piggy backs off the already existing alerts system and simply generates a Guardian Mode alert when an applicable vehicle alert is reported.\n\nThe generated alerts do not indicate what sort of interaction took place and simply includes the timestamp of the event. Only a single alert can exist at any given time.",
+			"protocolProfileBehavior": {}
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "38956729-1572-4df7-a221-03d78177e5fb",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "a052d2ab-b055-4453-a65b-0b0e9b70d6a2",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
