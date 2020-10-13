@@ -545,11 +545,6 @@ export function validateVehicleGETRequest(req: Request, res: Response, next?: Ne
     return res.sendStatus(400);
   }
 
-  if (!req.headers["x-requestor"] || req.headers["x-requestor"] !== "jlr") {
-    Logger.error(`invalid "x-requester" header`);
-    return res.sendStatus(401);
-  }
-
   const deviceId = req.headers["x-device-id"] as string;
   if (!deviceId || !ifop.isDeviceRegistered(deviceId, undefined, req.params.userid)) {
     Logger.error(`invalid "x-device-id" header: ${deviceId}`);

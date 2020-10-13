@@ -54,11 +54,6 @@ export function validateServiceRequest(req: Request, res: Response, next?: NextF
     return res.sendStatus(400);
   }
 
-  if (!req.headers["x-requestor"] || req.headers["x-requestor"] !== "jlr") {
-    Logger.error(`invalid "x-requester" header`);
-    return res.sendStatus(401);
-  }
-
   const deviceId = req.headers["x-device-id"] as string;
   if (!deviceId || !ifop.isDeviceRegistered(deviceId, getUserNameByVIN(req.params.VIN))) {
     Logger.error(`invalid "x-device-id" header: ${deviceId}`);
