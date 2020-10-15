@@ -8,12 +8,9 @@ const deviceDB = {
 
 export function clients(req: Request, res: Response, next?: NextFunction) {
 
-  if (!req || req.headers.authorization !== "Basic YXM6YXNwYXNz") {
-    return res.sendStatus(403);
-  }
-
   const contype = req.headers["content-type"];
   if (!contype || contype.indexOf("application/json") !== 0) {
+    Logger.error("clients(): missing contet-type header.");
     return res.sendStatus(400);
   }
 
@@ -24,8 +21,10 @@ export function clients(req: Request, res: Response, next?: NextFunction) {
       deviceDB[getKey(req.params.userName, req.body.deviceID)] = true;
       return res.sendStatus(204);
     }
+    Logger.error("clients(): token validation failed.");
     return res.sendStatus(403);
   } else {
+    Logger.error("clients(): Missing information in body.");
     res.sendStatus(403);
   }
 }
