@@ -97,7 +97,7 @@ describe("TEST validateServiceRequest", () => {
         "authorization": "Bearer someToken",
         // NOTE: Docu shows content-type ...v2+json
         "content-type" : "application/vnd.wirelesscar.ngtp.if9.StartServiceConfiguration-v3+json",
-        "x-device-id" : userDB["ansgerl@gmail.com"].deviceID
+        "x-device-id" : userDB["ansgerl@gmail.com"].deviceID,
       },
       params: {
         VIN : "SALWA2AK8KA868854",
